@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package proto;
+
+message Vacio{}
+
+message Estado{
+    string estado = 1;
+}
+
+service ServicioNodo{
+    rpc ObtenerEstado(Vacio) returns(Estado);
+}
