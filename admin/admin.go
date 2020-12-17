@@ -3,6 +3,10 @@ package main
 import (
 	"log"
 	"context"
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
 
 	pb "../proto"
 	"google.golang.org/grpc"
@@ -36,4 +40,26 @@ func main() {
 		log.Fatalf("Error al llamar a ObtenerEstado(): %s", err)
 	}
 	log.Printf("Estado del nodo seleccionado: " + estado.Estado)
+
+	//Receive Command
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Print("-> ")
+		text, _ := reader.ReadString('\n')
+		// convert CRLF to LF
+		text = strings.Replace(text, "\n", "", -1)
+
+		words := strings.Split(text, " ")
+	
+		if strings.Compare("create", words[0]) == 0 {
+		  fmt.Println("create")
+		} else if strings.Compare("update", words[0]) == 0 {
+			fmt.Println("update")
+		} else if strings.Compare("delete", words[0]) == 0 {
+			fmt.Println("delete")
+		} else {
+			fmt.Println("Usage:\n create\n update\n delete")
+		}
+	
+	  }
 }
