@@ -12,6 +12,13 @@ import (
 	"google.golang.org/grpc"
 )
 
+// ESTRUCTURAS
+type Cambio struct {
+	cambio string
+	reloj [3]int
+	ipDNS string
+}
+
 
 func conectarNodo(ip string, port string) *grpc.ClientConn {
 	var conn *grpc.ClientConn
@@ -29,8 +36,10 @@ func main() {
 
 	log.Printf("= INICIANDO ADMIN =\n")
 
+	log.Printf("Inicializando variables")
+	
+	
 	log.Println("Estableciendo conexión con el Broker")
-
 	conn := conectarNodo("127.0.0.1", "9000")
 	c := pb.NewServicioNodoClient(conn)
 
@@ -61,5 +70,5 @@ func main() {
 			fmt.Println("Usage:\n create\n update\n delete")
 		}
 	
-	  }
+	  } 
 }

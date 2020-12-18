@@ -16,6 +16,13 @@ import (
 // ESTRUCTURAS
 type Server struct{}
 
+type RegistroZF struct{
+	ruta string  // ruta dentro del sistema donde se almacena el archivo de Registro ZF
+	rutaLog string // ruta dentro del sistema donde se almacena el archivo de Logs de Cambios.
+	reloj [3]int
+	dominioLinea map[string]int // relaciona el nombre de dominio a la linea que ocupa dentro del archivo de registro
+}
+
 type NodeInfo struct {
 	Id   string `json:"id"`
 	Ip   string `json:"ip"`
@@ -26,6 +33,7 @@ type Config struct {
 	DataNode []NodeInfo `json:"DataNode"`
 	NameNode NodeInfo   `json:"NameNode"`
 }
+
 
 // FUNCIONES
 func cargarConfig(file string) Config {
@@ -71,6 +79,12 @@ func (s *Server) ObtenerEstado(ctx context.Context, message *pb.Vacio) (*pb.Esta
 func main() {
 	log.Printf("= INICIANDO DNS SERVER =")
 
+	// Definir e inicializar variables
+	log.Printf("Inicializando variables")
+	var dominioRegistro map[string]RegistroZF // relaciona el nombre de dominio con su Registro ZF respectivo
+	dominioRegistro = make(map[string]RegistroZF)
+	log.Printf("%v", dominioRegistro)
+	
 	// Cargar archivo de configuración
 	log.Printf("Cargando archivo de configuración")
 	var config Config

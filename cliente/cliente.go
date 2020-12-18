@@ -50,14 +50,10 @@ func main() {
 
 		words := strings.Split(text, " ")
 	
-		if strings.Compare("create", words[0]) == 0 {
-		  fmt.Println("create")
-		} else if strings.Compare("update", words[0]) == 0 {
-			fmt.Println("update")
-		} else if strings.Compare("delete", words[0]) == 0 {
-			fmt.Println("delete")
+		if strings.Compare("get", words[0]) == 0 {
+		  fmt.Println("get")
 		} else {
-			fmt.Println("Usage:\n create\n update\n delete")
+			fmt.Println("Usage:\n get")
 		}
 	
 	  }
