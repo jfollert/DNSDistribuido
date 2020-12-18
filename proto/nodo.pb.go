@@ -109,18 +109,336 @@ func (x *Estado) GetEstado() string {
 	return ""
 }
 
+type Consulta struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	NombreDominio string `protobuf:"bytes,1,opt,name=nombreDominio,proto3" json:"nombreDominio,omitempty"`
+	Ip            string `protobuf:"bytes,2,opt,name=ip,proto3" json:"ip,omitempty"`
+	Port          string `protobuf:"bytes,3,opt,name=port,proto3" json:"port,omitempty"`
+}
+
+func (x *Consulta) Reset() {
+	*x = Consulta{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_nodo_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Consulta) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Consulta) ProtoMessage() {}
+
+func (x *Consulta) ProtoReflect() protoreflect.Message {
+	mi := &file_nodo_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Consulta.ProtoReflect.Descriptor instead.
+func (*Consulta) Descriptor() ([]byte, []int) {
+	return file_nodo_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *Consulta) GetNombreDominio() string {
+	if x != nil {
+		return x.NombreDominio
+	}
+	return ""
+}
+
+func (x *Consulta) GetIp() string {
+	if x != nil {
+		return x.Ip
+	}
+	return ""
+}
+
+func (x *Consulta) GetPort() string {
+	if x != nil {
+		return x.Port
+	}
+	return ""
+}
+
+type ConsultaAdmin struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	NombreDominio string `protobuf:"bytes,1,opt,name=nombreDominio,proto3" json:"nombreDominio,omitempty"`
+}
+
+func (x *ConsultaAdmin) Reset() {
+	*x = ConsultaAdmin{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_nodo_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ConsultaAdmin) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConsultaAdmin) ProtoMessage() {}
+
+func (x *ConsultaAdmin) ProtoReflect() protoreflect.Message {
+	mi := &file_nodo_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConsultaAdmin.ProtoReflect.Descriptor instead.
+func (*ConsultaAdmin) Descriptor() ([]byte, []int) {
+	return file_nodo_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ConsultaAdmin) GetNombreDominio() string {
+	if x != nil {
+		return x.NombreDominio
+	}
+	return ""
+}
+
+type ConsultaUpdate struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	NombreDominio string `protobuf:"bytes,1,opt,name=nombreDominio,proto3" json:"nombreDominio,omitempty"`
+	Opcion        string `protobuf:"bytes,2,opt,name=opcion,proto3" json:"opcion,omitempty"`
+	Param         string `protobuf:"bytes,3,opt,name=param,proto3" json:"param,omitempty"`
+}
+
+func (x *ConsultaUpdate) Reset() {
+	*x = ConsultaUpdate{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_nodo_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ConsultaUpdate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConsultaUpdate) ProtoMessage() {}
+
+func (x *ConsultaUpdate) ProtoReflect() protoreflect.Message {
+	mi := &file_nodo_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConsultaUpdate.ProtoReflect.Descriptor instead.
+func (*ConsultaUpdate) Descriptor() ([]byte, []int) {
+	return file_nodo_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ConsultaUpdate) GetNombreDominio() string {
+	if x != nil {
+		return x.NombreDominio
+	}
+	return ""
+}
+
+func (x *ConsultaUpdate) GetOpcion() string {
+	if x != nil {
+		return x.Opcion
+	}
+	return ""
+}
+
+func (x *ConsultaUpdate) GetParam() string {
+	if x != nil {
+		return x.Param
+	}
+	return ""
+}
+
+type Respuesta struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Ip    string  `protobuf:"bytes,1,opt,name=ip,proto3" json:"ip,omitempty"`
+	Port  string  `protobuf:"bytes,2,opt,name=port,proto3" json:"port,omitempty"`
+	Reloj []int32 `protobuf:"varint,3,rep,packed,name=reloj,proto3" json:"reloj,omitempty"`
+}
+
+func (x *Respuesta) Reset() {
+	*x = Respuesta{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_nodo_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Respuesta) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Respuesta) ProtoMessage() {}
+
+func (x *Respuesta) ProtoReflect() protoreflect.Message {
+	mi := &file_nodo_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Respuesta.ProtoReflect.Descriptor instead.
+func (*Respuesta) Descriptor() ([]byte, []int) {
+	return file_nodo_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *Respuesta) GetIp() string {
+	if x != nil {
+		return x.Ip
+	}
+	return ""
+}
+
+func (x *Respuesta) GetPort() string {
+	if x != nil {
+		return x.Port
+	}
+	return ""
+}
+
+func (x *Respuesta) GetReloj() []int32 {
+	if x != nil {
+		return x.Reloj
+	}
+	return nil
+}
+
+type RespuestaAdmin struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Reloj []int32 `protobuf:"varint,2,rep,packed,name=reloj,proto3" json:"reloj,omitempty"`
+}
+
+func (x *RespuestaAdmin) Reset() {
+	*x = RespuestaAdmin{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_nodo_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RespuestaAdmin) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RespuestaAdmin) ProtoMessage() {}
+
+func (x *RespuestaAdmin) ProtoReflect() protoreflect.Message {
+	mi := &file_nodo_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RespuestaAdmin.ProtoReflect.Descriptor instead.
+func (*RespuestaAdmin) Descriptor() ([]byte, []int) {
+	return file_nodo_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *RespuestaAdmin) GetReloj() []int32 {
+	if x != nil {
+		return x.Reloj
+	}
+	return nil
+}
+
 var File_nodo_proto protoreflect.FileDescriptor
 
 var file_nodo_proto_rawDesc = []byte{
 	0x0a, 0x0a, 0x6e, 0x6f, 0x64, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x05, 0x70, 0x72,
 	0x6f, 0x74, 0x6f, 0x22, 0x07, 0x0a, 0x05, 0x56, 0x61, 0x63, 0x69, 0x6f, 0x22, 0x20, 0x0a, 0x06,
 	0x45, 0x73, 0x74, 0x61, 0x64, 0x6f, 0x12, 0x16, 0x0a, 0x06, 0x65, 0x73, 0x74, 0x61, 0x64, 0x6f,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x65, 0x73, 0x74, 0x61, 0x64, 0x6f, 0x32, 0x3c,
-	0x0a, 0x0c, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x69, 0x6f, 0x4e, 0x6f, 0x64, 0x6f, 0x12, 0x2c,
-	0x0a, 0x0d, 0x4f, 0x62, 0x74, 0x65, 0x6e, 0x65, 0x72, 0x45, 0x73, 0x74, 0x61, 0x64, 0x6f, 0x12,
-	0x0c, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x56, 0x61, 0x63, 0x69, 0x6f, 0x1a, 0x0d, 0x2e,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x45, 0x73, 0x74, 0x61, 0x64, 0x6f, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x65, 0x73, 0x74, 0x61, 0x64, 0x6f, 0x22, 0x54,
+	0x0a, 0x08, 0x43, 0x6f, 0x6e, 0x73, 0x75, 0x6c, 0x74, 0x61, 0x12, 0x24, 0x0a, 0x0d, 0x6e, 0x6f,
+	0x6d, 0x62, 0x72, 0x65, 0x44, 0x6f, 0x6d, 0x69, 0x6e, 0x69, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x0d, 0x6e, 0x6f, 0x6d, 0x62, 0x72, 0x65, 0x44, 0x6f, 0x6d, 0x69, 0x6e, 0x69, 0x6f,
+	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x70, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x70,
+	0x12, 0x12, 0x0a, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04,
+	0x70, 0x6f, 0x72, 0x74, 0x22, 0x35, 0x0a, 0x0d, 0x43, 0x6f, 0x6e, 0x73, 0x75, 0x6c, 0x74, 0x61,
+	0x41, 0x64, 0x6d, 0x69, 0x6e, 0x12, 0x24, 0x0a, 0x0d, 0x6e, 0x6f, 0x6d, 0x62, 0x72, 0x65, 0x44,
+	0x6f, 0x6d, 0x69, 0x6e, 0x69, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x6e, 0x6f,
+	0x6d, 0x62, 0x72, 0x65, 0x44, 0x6f, 0x6d, 0x69, 0x6e, 0x69, 0x6f, 0x22, 0x64, 0x0a, 0x0e, 0x43,
+	0x6f, 0x6e, 0x73, 0x75, 0x6c, 0x74, 0x61, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x12, 0x24, 0x0a,
+	0x0d, 0x6e, 0x6f, 0x6d, 0x62, 0x72, 0x65, 0x44, 0x6f, 0x6d, 0x69, 0x6e, 0x69, 0x6f, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x6e, 0x6f, 0x6d, 0x62, 0x72, 0x65, 0x44, 0x6f, 0x6d, 0x69,
+	0x6e, 0x69, 0x6f, 0x12, 0x16, 0x0a, 0x06, 0x6f, 0x70, 0x63, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x06, 0x6f, 0x70, 0x63, 0x69, 0x6f, 0x6e, 0x12, 0x14, 0x0a, 0x05, 0x70,
+	0x61, 0x72, 0x61, 0x6d, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x70, 0x61, 0x72, 0x61,
+	0x6d, 0x22, 0x45, 0x0a, 0x09, 0x52, 0x65, 0x73, 0x70, 0x75, 0x65, 0x73, 0x74, 0x61, 0x12, 0x0e,
+	0x0a, 0x02, 0x69, 0x70, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x70, 0x12, 0x12,
+	0x0a, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x70, 0x6f,
+	0x72, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x72, 0x65, 0x6c, 0x6f, 0x6a, 0x18, 0x03, 0x20, 0x03, 0x28,
+	0x05, 0x52, 0x05, 0x72, 0x65, 0x6c, 0x6f, 0x6a, 0x22, 0x26, 0x0a, 0x0e, 0x52, 0x65, 0x73, 0x70,
+	0x75, 0x65, 0x73, 0x74, 0x61, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x12, 0x14, 0x0a, 0x05, 0x72, 0x65,
+	0x6c, 0x6f, 0x6a, 0x18, 0x02, 0x20, 0x03, 0x28, 0x05, 0x52, 0x05, 0x72, 0x65, 0x6c, 0x6f, 0x6a,
+	0x32, 0x8c, 0x02, 0x0a, 0x0c, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x69, 0x6f, 0x4e, 0x6f, 0x64,
+	0x6f, 0x12, 0x2c, 0x0a, 0x0d, 0x4f, 0x62, 0x74, 0x65, 0x6e, 0x65, 0x72, 0x45, 0x73, 0x74, 0x61,
+	0x64, 0x6f, 0x12, 0x0c, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x56, 0x61, 0x63, 0x69, 0x6f,
+	0x1a, 0x0d, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x45, 0x73, 0x74, 0x61, 0x64, 0x6f, 0x12,
+	0x28, 0x0a, 0x03, 0x47, 0x65, 0x74, 0x12, 0x0f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x43,
+	0x6f, 0x6e, 0x73, 0x75, 0x6c, 0x74, 0x61, 0x1a, 0x10, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e,
+	0x52, 0x65, 0x73, 0x70, 0x75, 0x65, 0x73, 0x74, 0x61, 0x12, 0x35, 0x0a, 0x06, 0x43, 0x72, 0x65,
+	0x61, 0x74, 0x65, 0x12, 0x14, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x43, 0x6f, 0x6e, 0x73,
+	0x75, 0x6c, 0x74, 0x61, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x1a, 0x15, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x2e, 0x52, 0x65, 0x73, 0x70, 0x75, 0x65, 0x73, 0x74, 0x61, 0x41, 0x64, 0x6d, 0x69, 0x6e,
+	0x12, 0x35, 0x0a, 0x06, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x12, 0x14, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x2e, 0x43, 0x6f, 0x6e, 0x73, 0x75, 0x6c, 0x74, 0x61, 0x41, 0x64, 0x6d, 0x69, 0x6e,
+	0x1a, 0x15, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x52, 0x65, 0x73, 0x70, 0x75, 0x65, 0x73,
+	0x74, 0x61, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x12, 0x36, 0x0a, 0x06, 0x55, 0x70, 0x64, 0x61, 0x74,
+	0x65, 0x12, 0x15, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x43, 0x6f, 0x6e, 0x73, 0x75, 0x6c,
+	0x74, 0x61, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x1a, 0x15, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x2e, 0x52, 0x65, 0x73, 0x70, 0x75, 0x65, 0x73, 0x74, 0x61, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -135,16 +453,29 @@ func file_nodo_proto_rawDescGZIP() []byte {
 	return file_nodo_proto_rawDescData
 }
 
-var file_nodo_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_nodo_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_nodo_proto_goTypes = []interface{}{
-	(*Vacio)(nil),  // 0: proto.Vacio
-	(*Estado)(nil), // 1: proto.Estado
+	(*Vacio)(nil),          // 0: proto.Vacio
+	(*Estado)(nil),         // 1: proto.Estado
+	(*Consulta)(nil),       // 2: proto.Consulta
+	(*ConsultaAdmin)(nil),  // 3: proto.ConsultaAdmin
+	(*ConsultaUpdate)(nil), // 4: proto.ConsultaUpdate
+	(*Respuesta)(nil),      // 5: proto.Respuesta
+	(*RespuestaAdmin)(nil), // 6: proto.RespuestaAdmin
 }
 var file_nodo_proto_depIdxs = []int32{
 	0, // 0: proto.ServicioNodo.ObtenerEstado:input_type -> proto.Vacio
-	1, // 1: proto.ServicioNodo.ObtenerEstado:output_type -> proto.Estado
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	2, // 1: proto.ServicioNodo.Get:input_type -> proto.Consulta
+	3, // 2: proto.ServicioNodo.Create:input_type -> proto.ConsultaAdmin
+	3, // 3: proto.ServicioNodo.Delete:input_type -> proto.ConsultaAdmin
+	4, // 4: proto.ServicioNodo.Update:input_type -> proto.ConsultaUpdate
+	1, // 5: proto.ServicioNodo.ObtenerEstado:output_type -> proto.Estado
+	5, // 6: proto.ServicioNodo.Get:output_type -> proto.Respuesta
+	6, // 7: proto.ServicioNodo.Create:output_type -> proto.RespuestaAdmin
+	6, // 8: proto.ServicioNodo.Delete:output_type -> proto.RespuestaAdmin
+	6, // 9: proto.ServicioNodo.Update:output_type -> proto.RespuestaAdmin
+	5, // [5:10] is the sub-list for method output_type
+	0, // [0:5] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -180,6 +511,66 @@ func file_nodo_proto_init() {
 				return nil
 			}
 		}
+		file_nodo_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Consulta); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_nodo_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ConsultaAdmin); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_nodo_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ConsultaUpdate); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_nodo_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Respuesta); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_nodo_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RespuestaAdmin); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -187,7 +578,7 @@ func file_nodo_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_nodo_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -214,6 +605,10 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ServicioNodoClient interface {
 	ObtenerEstado(ctx context.Context, in *Vacio, opts ...grpc.CallOption) (*Estado, error)
+	Get(ctx context.Context, in *Consulta, opts ...grpc.CallOption) (*Respuesta, error)
+	Create(ctx context.Context, in *ConsultaAdmin, opts ...grpc.CallOption) (*RespuestaAdmin, error)
+	Delete(ctx context.Context, in *ConsultaAdmin, opts ...grpc.CallOption) (*RespuestaAdmin, error)
+	Update(ctx context.Context, in *ConsultaUpdate, opts ...grpc.CallOption) (*RespuestaAdmin, error)
 }
 
 type servicioNodoClient struct {
@@ -233,9 +628,49 @@ func (c *servicioNodoClient) ObtenerEstado(ctx context.Context, in *Vacio, opts 
 	return out, nil
 }
 
+func (c *servicioNodoClient) Get(ctx context.Context, in *Consulta, opts ...grpc.CallOption) (*Respuesta, error) {
+	out := new(Respuesta)
+	err := c.cc.Invoke(ctx, "/proto.ServicioNodo/Get", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *servicioNodoClient) Create(ctx context.Context, in *ConsultaAdmin, opts ...grpc.CallOption) (*RespuestaAdmin, error) {
+	out := new(RespuestaAdmin)
+	err := c.cc.Invoke(ctx, "/proto.ServicioNodo/Create", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *servicioNodoClient) Delete(ctx context.Context, in *ConsultaAdmin, opts ...grpc.CallOption) (*RespuestaAdmin, error) {
+	out := new(RespuestaAdmin)
+	err := c.cc.Invoke(ctx, "/proto.ServicioNodo/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *servicioNodoClient) Update(ctx context.Context, in *ConsultaUpdate, opts ...grpc.CallOption) (*RespuestaAdmin, error) {
+	out := new(RespuestaAdmin)
+	err := c.cc.Invoke(ctx, "/proto.ServicioNodo/Update", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ServicioNodoServer is the server API for ServicioNodo service.
 type ServicioNodoServer interface {
 	ObtenerEstado(context.Context, *Vacio) (*Estado, error)
+	Get(context.Context, *Consulta) (*Respuesta, error)
+	Create(context.Context, *ConsultaAdmin) (*RespuestaAdmin, error)
+	Delete(context.Context, *ConsultaAdmin) (*RespuestaAdmin, error)
+	Update(context.Context, *ConsultaUpdate) (*RespuestaAdmin, error)
 }
 
 // UnimplementedServicioNodoServer can be embedded to have forward compatible implementations.
@@ -244,6 +679,18 @@ type UnimplementedServicioNodoServer struct {
 
 func (*UnimplementedServicioNodoServer) ObtenerEstado(context.Context, *Vacio) (*Estado, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ObtenerEstado not implemented")
+}
+func (*UnimplementedServicioNodoServer) Get(context.Context, *Consulta) (*Respuesta, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (*UnimplementedServicioNodoServer) Create(context.Context, *ConsultaAdmin) (*RespuestaAdmin, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (*UnimplementedServicioNodoServer) Delete(context.Context, *ConsultaAdmin) (*RespuestaAdmin, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (*UnimplementedServicioNodoServer) Update(context.Context, *ConsultaUpdate) (*RespuestaAdmin, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
 
 func RegisterServicioNodoServer(s *grpc.Server, srv ServicioNodoServer) {
@@ -268,6 +715,78 @@ func _ServicioNodo_ObtenerEstado_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ServicioNodo_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Consulta)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServicioNodoServer).Get(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.ServicioNodo/Get",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServicioNodoServer).Get(ctx, req.(*Consulta))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ServicioNodo_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConsultaAdmin)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServicioNodoServer).Create(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.ServicioNodo/Create",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServicioNodoServer).Create(ctx, req.(*ConsultaAdmin))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ServicioNodo_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConsultaAdmin)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServicioNodoServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.ServicioNodo/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServicioNodoServer).Delete(ctx, req.(*ConsultaAdmin))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ServicioNodo_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConsultaUpdate)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServicioNodoServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.ServicioNodo/Update",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServicioNodoServer).Update(ctx, req.(*ConsultaUpdate))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _ServicioNodo_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "proto.ServicioNodo",
 	HandlerType: (*ServicioNodoServer)(nil),
@@ -275,6 +794,22 @@ var _ServicioNodo_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ObtenerEstado",
 			Handler:    _ServicioNodo_ObtenerEstado_Handler,
+		},
+		{
+			MethodName: "Get",
+			Handler:    _ServicioNodo_Get_Handler,
+		},
+		{
+			MethodName: "Create",
+			Handler:    _ServicioNodo_Create_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _ServicioNodo_Delete_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _ServicioNodo_Update_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

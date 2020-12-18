@@ -9,3 +9,7 @@ Admin:
 
 Broker:
 	go run broker/broker.go
+
+Protoc:
+	export PATH="$PATH:$(go env GOPATH)/bin"
+	protoc -I proto --go_out=plugins=grpc:proto proto/*.proto

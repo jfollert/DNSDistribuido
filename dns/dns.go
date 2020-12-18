@@ -30,21 +30,22 @@ type NodeInfo struct {
 }
 
 type Config struct {
-	DataNode []NodeInfo `json:"DataNode"`
-	NameNode NodeInfo   `json:"NameNode"`
+	DNS []NodeInfo `json:"DNS"`
+	Broker NodeInfo   `json:"Broker"`
 }
 
+var config Config
 
 // FUNCIONES
-func cargarConfig(file string) Config {
-	var config Config
-	configFile, err := ioutil.ReadFile(file)
-	if err != nil {
+func cargarConfig(file string) {
+    log.Printf("Cargando archivo de configuración")
+    configFile, err := ioutil.ReadFile(file)
+    if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 	json.Unmarshal(configFile, &config)
-	return config
+	log.Printf("Archivo de configuración cargado")
 }
 
 func iniciarNodo(port string) {
@@ -68,6 +69,49 @@ func iniciarNodo(port string) {
 
 }
 
+func obtenerListaIPs() []string{
+	var ips []string
+	ifaces, _ := net.Interfaces()
+	// handle err
+	for _, i := range ifaces {
+		addrs, _ := i.Addrs()
+		// handle err
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+					ip = v.IP
+			case *net.IPAddr:
+					ip = v.IP
+			}
+			ips = append(ips, ip.String())
+		}
+	}
+	return ips
+}
+
+func Find(slice []string, val string) (int, bool) {
+    for i, item := range slice {
+        if item == val {
+            return i, true
+        }
+    }
+    return -1, false
+}
+
+func conectarNodo(ip string, port string) (*grpc.ClientConn, error) {
+	var conn *grpc.ClientConn
+	log.Printf("Intentando iniciar conexión con " + ip + ":" + port)
+	host := ip + ":" + port
+	conn, err := grpc.Dial(host, grpc.WithInsecure())
+	if err != nil {
+		//log.Printf("No se pudo establecer la conexión con " + ip + ":" + strconv.Itoa(port))
+		return nil, err
+	}
+	//log.Printf("Conexión establecida con " + ip + ":" + strconv.Itoa(port))
+	return conn, nil
+}
+
 // FUNCIONES DEL SERVER
 func (s *Server) ObtenerEstado(ctx context.Context, message *pb.Vacio) (*pb.Estado, error){
 	estado := new(pb.Estado)
@@ -75,24 +119,70 @@ func (s *Server) ObtenerEstado(ctx context.Context, message *pb.Vacio) (*pb.Esta
 	return estado, nil
 }
 
+func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, error){
+	return new(pb.Respuesta), nil
+}
+
+func (s *Server) Create(ctx context.Context, message *pb.ConsultaAdmin) (*pb.RespuestaAdmin, error){
+	log.Printf("Creando registro")
+	return new(pb.RespuestaAdmin), nil
+}
+
+func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.RespuestaAdmin, error){
+	return new(pb.RespuestaAdmin), nil
+}
+
+func (s *Server) Update(ctx context.Context, message *pb.ConsultaUpdate) (*pb.RespuestaAdmin, error){
+	return new(pb.RespuestaAdmin), nil
+}
+
 
 func main() {
 	log.Printf("= INICIANDO DNS SERVER =")
+
+	// Cargar archivo de configuración
+	cargarConfig("config.json")
 
 	// Definir e inicializar variables
 	log.Printf("Inicializando variables")
 	var dominioRegistro map[string]RegistroZF // relaciona el nombre de dominio con su Registro ZF respectivo
 	dominioRegistro = make(map[string]RegistroZF)
-	log.Printf("%v", dominioRegistro)
-	
-	// Cargar archivo de configuración
-	log.Printf("Cargando archivo de configuración")
-	var config Config
-	config = cargarConfig("config.json")
-	log.Printf("Archivo de configuración cargado")
+	log.Printf("RegistrosZF:  %v", dominioRegistro)
 
-	port := config.NameNode.Port
+	// Iniciar variables que mantenga las conexiones establecidas entre nodos
+	conexionesNodos := make(map[string]*grpc.ClientConn)
+	conexionesGRPC := make(map[string]pb.ServicioNodoClient)
 
-	iniciarNodo(port)
+
+	// Identificar el servidor DNS correspondiente a la IP de la máquina
+	machineIPs := obtenerListaIPs() // Obtener lista de IPs asociadas a la máquina
+	for _, dns := range config.DNS{ // Iterar sobre las IP configuradas para servidores DNS
+		_, found := Find(machineIPs, dns.Ip)
+		if found { // En caso de que la IP configurada coincida con alguna de las IPs de la máquina
+			id := dns.Id
+			ip := dns.Ip
+			port := dns.Port
+			conn, err := conectarNodo(ip, port)
+			if err != nil{
+				// Falla la conexión gRPC 
+				log.Fatalf("Error al intentar realizar conexión gRPC: %s", err)
+			} else {
+				// Registrar servicio gRPC
+				c := pb.NewServicioNodoClient(conn)
+				estado, err := c.ObtenerEstado(context.Background(), new(pb.Vacio))
+				if err != nil {
+					//log.Fatalf("Error al llamar a ObtenerEstado(): %s", err)
+					log.Printf("Nodo DNS disponible: " + id)
+					iniciarNodo(port)
+					break
+				}
+				if estado.Estado == "OK" {
+					log.Printf("Almacenando conexión a nodo DNS: " + id)
+					conexionesNodos[id] = conn
+					conexionesGRPC[id] = c
+				}
+			}
+		}
+	}
 
 }

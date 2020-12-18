@@ -41,10 +41,10 @@ func main() {
 	
 	log.Println("Estableciendo conexión con el Broker")
 	conn := conectarNodo("127.0.0.1", "9000")
-	c := pb.NewServicioNodoClient(conn)
+	broker := pb.NewServicioNodoClient(conn)
 
 	//log.Printf("Conectado al nodo " + ip + ":" + port)
-	estado, err := c.ObtenerEstado(context.Background(), new(pb.Vacio))
+	estado, err := broker.ObtenerEstado(context.Background(), new(pb.Vacio))
 	if err != nil {
 		log.Fatalf("Error al llamar a ObtenerEstado(): %s", err)
 	}
@@ -60,8 +60,19 @@ func main() {
 
 		words := strings.Split(text, " ")
 	
-		if strings.Compare("create", words[0]) == 0 {
-		  fmt.Println("create")
+		if strings.Compare("create", words[0]) == 0 { 
+			resp, err := broker.Get(context.Background(), new(pb.Consulta))
+			if err != nil {
+			log.Fatalf("Error al llamar a Get(): %s", err)
+			}
+
+			log.Println("Estableciendo conexión con el nodo DNS")
+			conn := conectarNodo(resp.Ip, resp.Port)
+			dns := pb.NewServicioNodoClient(conn)
+
+			consultaAdmin := new(pb.ConsultaAdmin)
+			consultaAdmin.NombreDominio = words[1]
+			dns.Create(context.Background(), new(pb.ConsultaAdmin))
 		} else if strings.Compare("update", words[0]) == 0 {
 			fmt.Println("update")
 		} else if strings.Compare("delete", words[0]) == 0 {

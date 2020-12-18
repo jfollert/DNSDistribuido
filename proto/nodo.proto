@@ -8,6 +8,38 @@ message Estado{
     string estado = 1;
 }
 
+message Consulta{
+    string nombreDominio = 1;
+    string ip = 2;
+    string port = 3;
+}
+
+message ConsultaAdmin{
+    string nombreDominio = 1;
+}
+
+
+message ConsultaUpdate{
+    string nombreDominio = 1;
+    string opcion = 2;
+    string param = 3;
+}
+
+message Respuesta{
+    string ip = 1;
+    string port = 2;
+    repeated int32 reloj = 3;
+}
+
+message RespuestaAdmin{
+    repeated int32 reloj = 2;
+}
+
+
 service ServicioNodo{
     rpc ObtenerEstado(Vacio) returns(Estado);
+    rpc Get(Consulta) returns(Respuesta);
+    rpc Create(ConsultaAdmin) returns(RespuestaAdmin);
+    rpc Delete(ConsultaAdmin) returns(RespuestaAdmin);
+    rpc Update(ConsultaUpdate) returns(RespuestaAdmin);
 }

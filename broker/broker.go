@@ -8,6 +8,8 @@ import (
 	"os"
 	"encoding/json"
 	"net"
+	"strings"
+	"math/rand"
 
 	pb "../proto"
 	"google.golang.org/grpc"
@@ -23,9 +25,11 @@ type NodeInfo struct {
 }
 
 type Config struct {
-	DataNode []NodeInfo `json:"DataNode"`
-	NameNode NodeInfo `json:"NameNode"`
+	DNS[]NodeInfo `json:"DNS"`
+	Broker NodeInfo `json:"Broker"`
 }
+
+var config Config
 
 // FUNCIONES DEL SERVER
 func (s *Server) ObtenerEstado(ctx context.Context, message *pb.Vacio) (*pb.Estado, error){
@@ -34,17 +38,43 @@ func (s *Server) ObtenerEstado(ctx context.Context, message *pb.Vacio) (*pb.Esta
 	return estado, nil
 }
 
+func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, error){
+	respuesta := new(pb.Respuesta)
+	if strings.Compare("", message.NombreDominio) == 0 { // Si no se recibe un nombreDominio
+		log.Printf("Recibida solicitud desde administrador, buscando servidor DNS")
+		idRandom := rand.Intn(3)
+		log.Printf("DNS: %v", config.DNS)
+		log.Printf("Servidor DNS obtenido de forma aleatoria: DNS%d", idRandom+1)
+		respuesta.Ip = config.DNS[idRandom].Ip
+		respuesta.Port = config.DNS[idRandom].Port
+	}
+	return respuesta, nil
+}
+
+func (s *Server) Create(ctx context.Context, message *pb.ConsultaAdmin) (*pb.RespuestaAdmin, error){
+	return new(pb.RespuestaAdmin), nil
+}
+
+func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.RespuestaAdmin, error){
+	return new(pb.RespuestaAdmin), nil
+}
+
+
+func (s *Server) Update(ctx context.Context, message *pb.ConsultaUpdate) (*pb.RespuestaAdmin, error){
+	return new(pb.RespuestaAdmin), nil
+}
+
 
 // FUNCIONES
-func cargarConfig(file string) Config {
-    var config Config
+func cargarConfig(file string) {
+    log.Printf("Cargando archivo de configuración")
     configFile, err := ioutil.ReadFile(file)
     if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 	json.Unmarshal(configFile, &config)
-    return config
+	log.Printf("Archivo de configuración cargado")
 }
 
 func iniciarNodo(port string) {
@@ -70,5 +100,9 @@ func iniciarNodo(port string) {
 
 func main() {
 	log.Println("= INICIANDO BROKER =")
+
+	// Cargar archivo de configuración
+	cargarConfig("config.json")
+
 	iniciarNodo("9000")
 }
