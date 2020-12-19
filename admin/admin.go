@@ -72,7 +72,12 @@ func main() {
 
 			consultaAdmin := new(pb.ConsultaAdmin)
 			consultaAdmin.NombreDominio = words[1]
-			dns.Create(context.Background(), new(pb.ConsultaAdmin))
+			dnsResp, err := dns.Create(context.Background(), consultaAdmin)
+			if err != nil {
+				log.Fatalf("Error al llamar a Create(): %s", err)
+				}
+			log.Printf("Reloj: %+v", dnsResp.Reloj)
+
 		} else if strings.Compare("update", words[0]) == 0 {
 			fmt.Println("update")
 		} else if strings.Compare("delete", words[0]) == 0 {
