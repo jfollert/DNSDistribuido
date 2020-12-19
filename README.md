@@ -4,7 +4,7 @@
   - José Follert 
   - Harold Melo
 
-# Ejecución
+## Ejecución
 1. Ejecutar los servidores DNS en sus respectivas máquinas utilizando el comando:
 ```console
 make DNS
@@ -34,3 +34,6 @@ Para compilar los archivos .proto
 ```console
 protoc -I proto --go_out=plugins=grpc:proto proto/*.proto
 ```
+
+### CONSIDERACIONES
+- Todos los nombres de dominios deben seguir la estructura *nombre.dominio*, una mayor cantidad de puntos causará errores.
