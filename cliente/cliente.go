@@ -39,7 +39,7 @@ func main() {
 		log.Fatalf("Error al llamar a ObtenerEstado(): %s", err)
 	}
 	log.Printf("Estado del nodo seleccionado: " + estado.Estado)
-
+	memoriaLocal:= map[string]pb.Respuesta
 	//Receive Command
 	reader := bufio.NewReader(os.Stdin)
 	for {
@@ -50,9 +50,31 @@ func main() {
 
 		words := strings.Split(text, " ")
 	
-		if strings.Compare("get", words[0]) == 0 {
-		  fmt.Println("get")
-		} else {
+		if strings.Compare("get", words[0]) == 0  { 
+			if len(words) != 2 {
+				fmt.Printf("[ERROR] Usage:\n get <nombre>.<dominio> \n")
+			} else {
+				cons := new(pb.Consulta)
+				cons.nombreDominio = words[1]
+				resp, err := broker.Get(context.Background(), cons)
+				if err != nil {
+				log.Fatalf("Error al llamar a Get(): %s", err)
+				}
+				//Aca se aplica consistencia
+				if memoriaLocal[words[1]].reloj< resp.reloj{
+					cons := new(pb.Consulta)
+					cons.nombreDominio = words[1]
+					cons.ip= localIp
+					resp, err := broker.Get(context.Background(), cons)
+					if err != nil {
+					log.Fatalf("Error al llamar a Get(): %s", err)
+					}
+				
+				}
+				memoriaLocal[words[1]]=resp
+				
+			}
+		}else {
 			fmt.Println("Usage:\n get")
 		}
 	
