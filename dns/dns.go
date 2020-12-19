@@ -162,7 +162,7 @@ func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, 
 	return new(pb.Respuesta), nil
 }
 
-func (s *Server) Create(ctx context.Context, message *pb.ConsultaAdmin) (*pb.RespuestaAdmin, error){
+func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.RespuestaAdmin, error){
 	// Separar nombre y el dominio en diferentes strings
 	log.Printf("NombreDominio: %s", message.NombreDominio)
 	split := strings.Split(message.NombreDominio, ".")
@@ -190,7 +190,7 @@ func (s *Server) Create(ctx context.Context, message *pb.ConsultaAdmin) (*pb.Res
 		return nil, err
 	}
 	defer reg.Close()
-	if _, err := reg.WriteString(nombre + "." + dominio + " IN A \n"); err != nil {
+	if _, err := reg.WriteString(nombre + "." + dominio + " IN A " + message.Ip + "\n"); err != nil {
 		log.Println(err)
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func (s *Server) Create(ctx context.Context, message *pb.ConsultaAdmin) (*pb.Res
 		return nil, err
 	}
 	defer logFile.Close()
-	if _, err := logFile.WriteString("create " + nombre + "." + dominio + "\n"); err != nil {
+	if _, err := logFile.WriteString("create " + nombre + "." + dominio + " " + message.Ip + "\n"); err != nil {
 		log.Println(err)
 		return nil, err
 	}
@@ -227,11 +227,13 @@ func (s *Server) Create(ctx context.Context, message *pb.ConsultaAdmin) (*pb.Res
 }
 
 func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.RespuestaAdmin, error){
-	return new(pb.RespuestaAdmin), nil
+	respuesta := new(pb.RespuestaAdmin)
+	return respuesta, nil
 }
 
 func (s *Server) Update(ctx context.Context, message *pb.ConsultaUpdate) (*pb.RespuestaAdmin, error){
-	return new(pb.RespuestaAdmin), nil
+	respuesta := new(pb.RespuestaAdmin)
+	return respuesta, nil
 }
 
 

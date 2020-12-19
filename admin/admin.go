@@ -61,23 +61,28 @@ func main() {
 		words := strings.Split(text, " ")
 	
 		if strings.Compare("create", words[0]) == 0 { 
-			resp, err := broker.Get(context.Background(), new(pb.Consulta))
-			if err != nil {
-			log.Fatalf("Error al llamar a Get(): %s", err)
-			}
-
-			log.Println("Estableciendo conexión con el nodo DNS")
-			conn := conectarNodo(resp.Ip, resp.Port)
-			dns := pb.NewServicioNodoClient(conn)
-
-			consultaAdmin := new(pb.ConsultaAdmin)
-			consultaAdmin.NombreDominio = words[1]
-			dnsResp, err := dns.Create(context.Background(), consultaAdmin)
-			if err != nil {
-				log.Fatalf("Error al llamar a Create(): %s", err)
+			if len(words) != 3 {
+				fmt.Printf("[ERROR] Usage:\n create <nombre>.<dominio> <IP>\n")
+			} else {
+				resp, err := broker.Get(context.Background(), new(pb.Consulta))
+				if err != nil {
+				log.Fatalf("Error al llamar a Get(): %s", err)
 				}
-			log.Printf("Reloj: %+v", dnsResp.Reloj)
 
+				log.Println("Estableciendo conexión con el nodo DNS")
+				conn := conectarNodo(resp.Ip, resp.Port)
+				dns := pb.NewServicioNodoClient(conn)
+
+				consulta := new(pb.Consulta)
+				consulta.NombreDominio = words[1]
+				consulta.Ip = words[2]
+
+				dnsResp, err := dns.Create(context.Background(), consulta)
+				if err != nil {
+					log.Fatalf("Error al llamar a Create(): %s", err)
+					}
+				log.Printf("Reloj: %+v", dnsResp.Reloj)
+			}
 		} else if strings.Compare("update", words[0]) == 0 {
 			fmt.Println("update")
 		} else if strings.Compare("delete", words[0]) == 0 {

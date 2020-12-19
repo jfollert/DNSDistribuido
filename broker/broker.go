@@ -52,7 +52,7 @@ func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, 
 	return respuesta, nil
 }
 
-func (s *Server) Create(ctx context.Context, message *pb.ConsultaAdmin) (*pb.RespuestaAdmin, error){
+func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.RespuestaAdmin, error){
 	return new(pb.RespuestaAdmin), nil
 }
 

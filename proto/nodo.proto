@@ -11,7 +11,6 @@ message Estado{
 message Consulta{
     string nombreDominio = 1;
     string ip = 2;
-    string port = 3;
 }
 
 message ConsultaAdmin{
@@ -39,7 +38,7 @@ message RespuestaAdmin{
 service ServicioNodo{
     rpc ObtenerEstado(Vacio) returns(Estado);
     rpc Get(Consulta) returns(Respuesta);
-    rpc Create(ConsultaAdmin) returns(RespuestaAdmin);
+    rpc Create(Consulta) returns(RespuestaAdmin);
     rpc Delete(ConsultaAdmin) returns(RespuestaAdmin);
     rpc Update(ConsultaUpdate) returns(RespuestaAdmin);
 }
