@@ -45,7 +45,10 @@ func main() {
 	log.Printf("Estado del nodo seleccionado: " + estado.Estado)
 	
 	//Registro de memoria del cliente
-	memoriaLocal:= make(map[string]*pb.Respuesta)
+	//memoriaLocal:= make(map[string]*pb.Respuesta)
+	ipLocal:=make(map[string]string)
+	relojLocal:=make(map[string][]int32)
+	
 	//Receive Command
 	reader := bufio.NewReader(os.Stdin)
 	for {
@@ -68,18 +71,19 @@ func main() {
 				}
 				//Aca se aplica consistencia
 				
-				if memoriaLocal[words[1]].Reloj< resp.Reloj{
+				if relojLocal[words[1]]< resp.Reloj{
 					cons := new(pb.Consulta)
 					cons.NombreDominio = words[1]
-					cons.Ip= memoriaLocal[words[1]].Ip
+					//cons.Ip= memoriaLocal[words[1]].Ip
+					cons.Ip= ipLocal[words[1]]
 					resp, err := broker.Get(context.Background(), cons)
 					if err != nil {
 					log.Fatalf("Error al llamar a Get(): %s", err)
 					}
 				
 				}
-				memoriaLocal[words[1]]=resp
-				
+				ipLocal[words[1]]=resp.Ip
+				relojLocal[words[1]]=resp.Reloj
 			}
 		}else {
 			fmt.Println("Usage:\n get")
