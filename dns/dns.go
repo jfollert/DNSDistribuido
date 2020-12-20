@@ -248,24 +248,27 @@ func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.Res
 				return nil, err
 			}
 			defer file1.Close()
-			lineas := strings.Split(strings.TrimSpace(string(text)), "\n")
+			lineas := strings.Split(string(text), "\n")
+			flag := false
 			for i, linea := range lineas{
 				if i == dominioRegistro[dominio].cantLineas {
 					break
 				}
 				if i != dominioRegistro[dominio].dominioLinea[nombre] - 1 {
-					_, err = file1.WriteString(linea+"\n")
-					if err != nil {
-						log.Println(err)
-						return nil, err
+					if i == 0 || flag {
+						_, err = file1.WriteString(linea)
+						flag = false
+					} else {
+						_, err = file1.WriteString("\n" + linea)
 					}
 				} else {
 					_, err = file1.WriteString("\n")
-					if err != nil {
-						log.Println(err)
-						return nil, err
-					}
-				}	
+					flag = true
+				}
+				if err != nil {
+					log.Println(err)
+					return nil, err
+				}
 			}
 		
 		} else{ // Si no se encuentra la linea donde se encuentra el nombre dentro del registro ZF

@@ -62,14 +62,19 @@ func main() {
 	
 		if strings.Compare("create", words[0]) == 0 { 
 			if len(words) != 3 {
-				fmt.Printf("[ERROR] Usage:\n create <nombre>.<dominio> <IP>\n")
+				log.Printf("[ERROR] Usage:\n create <nombre>.<dominio> <IP>\n")
+				continue
 			} else {
+				if !strings.Contains(words[1], ".") {
+					log.Printf("[ERROR] Los parámetros <nombre>.<dominio> deben estar unido por un punto\n")
+					continue
+				}
 				resp, err := broker.Get(context.Background(), new(pb.Consulta))
 				if err != nil {
 				log.Fatalf("Error al llamar a Get(): %s", err)
 				}
 
-				log.Println("Estableciendo conexión con el nodo DNS")
+				log.Println("Estableciendo conexión con el nodo DNS")	
 				conn := conectarNodo(resp.Ip, resp.Port)
 				dns := pb.NewServicioNodoClient(conn)
 
