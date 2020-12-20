@@ -10,7 +10,8 @@ import (
 	"context"
 	"strings"
 	"strconv"
-	"io"
+	//"io"
+	"errors"
 
 	pb "../proto"
 	"google.golang.org/grpc"
@@ -24,6 +25,7 @@ type RegistroZF struct{
 	rutaLog string // ruta dentro del sistema donde se almacena el archivo de Logs de Cambios.
 	reloj []int32
 	dominioLinea map[string]int // relaciona el nombre de dominio a la linea que ocupa dentro del archivo de registro
+	cantLineas int
 }
 
 type NodeInfo struct {
@@ -75,40 +77,6 @@ func iniciarNodo(port string) {
 
 }
 
-func iniciarRegistroZF(dominio string) {
-	dominioRegistro[dominio] = new(RegistroZF)
-	log.Printf("Iniciado nuevo Registro ZF para el dominio %s", dominio)
-
-	dominioRegistro[dominio].ruta = "dns/registros/" + ID_DNS + "_" + dominio + ".zf"
-	// Verificar que no exista el archivo
-	var _, err = os.Stat(dominioRegistro[dominio].ruta)
-	if os.IsNotExist(err) {
-		f, err := os.Create(dominioRegistro[dominio].ruta)
-		if err != nil {
-			log.Println(err)
-		}
-		defer f.Close()
-	}
-	log.Printf("Generado archivo Registro ZF: %s", dominioRegistro[dominio].ruta)
-
-	dominioRegistro[dominio].rutaLog = "dns/logs/" + ID_DNS + "_" + dominio + ".log"
-	// Verificar que no exista el archivo
-	var _, err2 = os.Stat(dominioRegistro[dominio].rutaLog)
-	if os.IsNotExist(err2) {
-		f, err := os.Create(dominioRegistro[dominio].rutaLog)
-		if err != nil {
-			log.Println(err)
-		}
-		defer f.Close()
-	}
-	log.Printf("Generado Log de cambios: %s", dominioRegistro[dominio].rutaLog)
-	
-	dominioRegistro[dominio].reloj = []int32{0, 0, 0}
-	dominioRegistro[dominio].dominioLinea = make(map[string]int)
-	log.Printf("RegistroZF registrado de forma exitosa")
-
-}
-
 func obtenerListaIPs() []string{
 	var ips []string
 	ifaces, _ := net.Interfaces()
@@ -152,6 +120,20 @@ func conectarNodo(ip string, port string) (*grpc.ClientConn, error) {
 	return conn, nil
 }
 
+func separarNombreDominio(nombreDominio string) (string, string) {
+	split := strings.Split(nombreDominio, ".")
+	var nombre string
+	var dominio string
+
+	if len(split) == 2{
+	nombre = split[0]
+	dominio = split[1]
+	} else {
+		log.Fatal("[ERROR] Error dividiendo la variable NombreDominio")
+	}
+	return nombre, dominio
+}
+
 //// FUNCIONES DEL OBJETO SERVER
 func (s *Server) ObtenerEstado(ctx context.Context, message *pb.Vacio) (*pb.Estado, error){
 	estado := new(pb.Estado)
@@ -165,36 +147,52 @@ func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, 
 
 func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.RespuestaAdmin, error){
 	// Separar nombre y el dominio en diferentes strings
-	split := strings.Split(message.NombreDominio, ".")
-	var nombre string
-	var dominio string
-
-	if len(split) == 2{
-	nombre = split[0]
-	dominio = split[1]
-	} else {
-		log.Println("[ERROR] Error dividiendo la variable NombreDominio")
-		return nil, nil
-	}
+	nombre, dominio := separarNombreDominio(message.NombreDominio)
+	salto := "\n"
 
 	// Agregar información a registro ZF
-	_, ok := dominioRegistro[dominio]
-	if !ok {  // Si no existe un registro ZF asociado
-		iniciarRegistroZF(dominio)
+	if _, ok := dominioRegistro[dominio]; !ok {  // Si no existe un registro ZF asociado al dominio
+		rutaRegistro := "dns/registros/" + ID_DNS + "_" + dominio + ".zf"
+		rutaLog := "dns/logs/" + ID_DNS + "_" + dominio + ".log"
+		
+		// Verificar que no existan los archivos asociados al registro
+		var _, err1 = os.Stat(rutaRegistro)
+		var _, err2 = os.Stat(rutaLog)
+		if !os.IsNotExist(err1) || !os.IsNotExist(err2) { // Si alguno de los archivos ya existe
+			log.Println("Se han encotrado los archivos asociados al registro pero el registro no se encuentra en memoria.")
+			return nil, errors.New("Se han encotrado los archivos asociados al registro pero el registro no se encuentra en memoria.")
+		} 
+
+		// Iniciar nuevo registro ZF en memoria
+		dominioRegistro[dominio] = new(RegistroZF)
+		
+		// Asociar las rutas correspondientes al registro ZF
+		dominioRegistro[dominio].ruta = rutaRegistro
+		dominioRegistro[dominio].rutaLog = rutaLog
+
+		// Inicializar variables del registro ZF
+		dominioRegistro[dominio].reloj = []int32{0, 0, 0}
+		dominioRegistro[dominio].dominioLinea = make(map[string]int)
+		dominioRegistro[dominio].cantLineas = 0
+		salto = ""
+
+		log.Println("Se ha inicializado un nuevo registro ZF en memoria")
 	}
 
-	reg, err := os.OpenFile(dominioRegistro[dominio].ruta,
+	// Agregar información a archivo de registro ZF
+	regFile, err := os.OpenFile(dominioRegistro[dominio].ruta,
 	os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	defer reg.Close()
-	if _, err := reg.WriteString(nombre + "." + dominio + " IN A " + message.Ip + "\n"); err != nil {
+	defer regFile.Close()
+	if _, err := regFile.WriteString(salto + nombre + "." + dominio + " IN A " + message.Ip); err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	log.Println("Información agregada al registro ZF")
+	dominioRegistro[dominio].cantLineas += 1
+	log.Println("Información agregada al archivo del registro ZF")
 
 	// Agregar información a Log de cambios
 	logFile, err := os.OpenFile(dominioRegistro[dominio].rutaLog,
@@ -204,7 +202,7 @@ func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuest
 		return nil, err
 	}
 	defer logFile.Close()
-	if _, err := logFile.WriteString("create " + nombre + "." + dominio + " " + message.Ip + "\n"); err != nil {
+	if _, err := logFile.WriteString(salto + "create " + nombre + "." + dominio + " " + message.Ip); err != nil {
 		log.Println(err)
 		return nil, err
 	}
@@ -219,77 +217,67 @@ func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuest
 	dominioRegistro[dominio].reloj[id - 1] += 1
 	
 	// Actualizar map de nombre a la linea en que se encuentra
-	dominioRegistro[dominio].dominioLinea[nombre] = len(dominioRegistro[dominio].dominioLinea) + 1
+	dominioRegistro[dominio].dominioLinea[nombre] = dominioRegistro[dominio].cantLineas
 
+	// Generar respuesta y retornarla
 	respuesta := new(pb.RespuestaAdmin) 
 	respuesta.Reloj = dominioRegistro[dominio].reloj 
 	return respuesta, nil
+
 }
 
 func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.RespuestaAdmin, error){
 	// Separar nombre y el dominio en diferentes strings
-	split := strings.Split(message.NombreDominio, ".")
-	var nombre string
-	var dominio string
-
-	if len(split) == 2{
-	nombre = split[0]
-	dominio = split[1]
-	} else {
-		log.Println("[ERROR] Error dividiendo la variable NombreDominio")
-		return nil, nil
-	}
+	nombre, dominio := separarNombreDominio(message.NombreDominio)
 
 	// Remover linea de registro ZF
-	_, ok := dominioRegistro[dominio].dominioLinea[nombre]
-	if ok {  // Si se encuentra la linea donde está el nombre
-		var file, err = os.OpenFile(dominioRegistro[dominio].ruta, os.O_RDWR, 0644)
-		if err != nil {
-			log.Println(err)
-			return nil, err
-		}
-		defer file.Close()
-
-		// Read file, line by line
-		var text = make([]byte, 1024)
-		for {
-			_, err = file.Read(text)
-			if err == io.EOF {
-				break
-			}
-			if err != nil && err != io.EOF {
+	if registro, ok := dominioRegistro[dominio]; ok { // Verificar si se encuentra el dominio en nuestro registro ZF
+		if _, ok := registro.dominioLinea[nombre]; ok { // Verificar si se encuentra la linea donde está el nombre
+			var file, err = os.OpenFile(dominioRegistro[dominio].ruta, os.O_RDWR, 0644)
+			if err != nil {
 				log.Println(err)
-				break
+				return nil, err
 			}
-		}
-		
-		file, err = os.OpenFile(dominioRegistro[dominio].ruta, os.O_RDWR, 0644)
-		if err != nil {
-			log.Println(err)
-			return nil, err
-		}
-		defer file.Close()
-		lineas := strings.Split(strings.TrimSpace(string(text)), "\n")
-    	for i, linea := range lineas{
-			if i != dominioRegistro[dominio].dominioLinea[nombre] - 1 {
-				_, err = file.WriteString(linea+"\n")
-				if err != nil {
-					log.Println(err)
-					return nil, err
-				}
-			} else {
-				_, err = file.WriteString("\n")
-				if err != nil {
-					log.Println(err)
-					return nil, err
-				}
-			}	
-		}
+			defer file.Close()
 
-	} else{
-		log.Printf("No se encuentra registrada la linea")
+			text, err := ioutil.ReadAll(file)
+			
+			file1, err := os.Create(dominioRegistro[dominio].ruta)
+			if err != nil {
+				log.Println(err)
+				return nil, err
+			}
+			defer file1.Close()
+			lineas := strings.Split(strings.TrimSpace(string(text)), "\n")
+			for i, linea := range lineas{
+				if i == dominioRegistro[dominio].cantLineas {
+					break
+				}
+				if i != dominioRegistro[dominio].dominioLinea[nombre] - 1 {
+					_, err = file1.WriteString(linea+"\n")
+					if err != nil {
+						log.Println(err)
+						return nil, err
+					}
+				} else {
+					_, err = file1.WriteString("\n")
+					if err != nil {
+						log.Println(err)
+						return nil, err
+					}
+				}	
+			}
+		
+		} else{ // Si no se encuentra la linea donde se encuentra el nombre dentro del registro ZF
+			log.Printf("No es posible encontrar en el registro ZF la linea del nombre: " + nombre)
+			return nil, errors.New("No es posible encontrar en el registro ZF la linea del nombre: " + nombre)
+		}
+		log.Println("Linea eliminada del registro ZF")
+	} else { //Si no se encuentra el dominio registrado
+		log.Printf("No se encuentra el dominio registrado: " + dominio)
+		return nil, errors.New("No se encuentra el dominio registrado: " + dominio)
 	}
-	log.Println("Linea eliminada del registro ZF")
+		
 
 	// Agregar información a Log de cambios
 	logFile, err := os.OpenFile(dominioRegistro[dominio].rutaLog,
@@ -299,12 +287,11 @@ func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.Res
 		return nil, err
 	}
 	defer logFile.Close()
-	if _, err := logFile.WriteString("delete " + nombre + "." + dominio + "\n"); err != nil {
+	if _, err := logFile.WriteString("\n" + "delete " + nombre + "." + dominio); err != nil {
 		log.Println(err)
 		return nil, err
 	}
 	log.Println("Información agregada al Log de cambios")
-
 
 	// Actualizar reloj de vector
 	id, err := strconv.Atoi(string(ID_DNS[3]))
@@ -315,6 +302,10 @@ func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.Res
 	dominioRegistro[dominio].reloj[id - 1] += 1
 	log.Println("Reloj actualizado")
 
+	// Remover mapeo de nombre a la linea en que se encuentra
+	delete(dominioRegistro[dominio].dominioLinea, nombre)
+
+	// Generar respuesta y retornarla
 	respuesta := new(pb.RespuestaAdmin)
 	respuesta.Reloj = dominioRegistro[dominio].reloj 
 	return respuesta, nil

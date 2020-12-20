@@ -79,7 +79,8 @@ func main() {
 
 				dnsResp, err := dns.Create(context.Background(), consulta)
 				if err != nil {
-					log.Fatalf("Error al llamar a Create(): %s", err)
+					log.Printf("Error al llamar a Create(): %s", err)
+					continue
 					}
 				log.Printf("Create exitoso! - Reloj: %+v", dnsResp.Reloj)
 			}
@@ -105,7 +106,8 @@ func main() {
 
 				dnsResp, err := dns.Delete(context.Background(), consulta)
 				if err != nil {
-					log.Fatalf("Error al llamar a Delete(): %s", err)
+					log.Printf("Error al llamar a Delete(): %s", err)
+					continue
 					}
 				log.Printf("Delete exitoso! - Reloj: %+v", dnsResp.Reloj)
 			}
