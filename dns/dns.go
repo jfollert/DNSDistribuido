@@ -141,10 +141,12 @@ func (s *Server) ObtenerEstado(ctx context.Context, message *pb.Vacio) (*pb.Esta
 	return estado, nil
 }
 
+// Comando GET
 func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, error){
 	return new(pb.Respuesta), nil
 }
 
+// Comando CREATE
 func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.RespuestaAdmin, error){
 	// Separar nombre y el dominio en diferentes strings
 	nombre, dominio := separarNombreDominio(message.NombreDominio)
@@ -226,6 +228,7 @@ func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuest
 
 }
 
+// Comando DELETE
 func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.RespuestaAdmin, error){
 	// Separar nombre y el dominio en diferentes strings
 	nombre, dominio := separarNombreDominio(message.NombreDominio)
@@ -314,7 +317,64 @@ func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.Res
 	return respuesta, nil
 }
 
+// Comando UPDATE
 func (s *Server) Update(ctx context.Context, message *pb.ConsultaUpdate) (*pb.RespuestaAdmin, error){
+	// Separar nombre y el dominio en diferentes strings
+	nombre, dominio := separarNombreDominio(message.NombreDominio)
+
+	// Actualizar linea de registro ZF
+	if registro, ok := dominioRegistro[dominio]; ok { // Verificar si se encuentra el dominio en nuestro registro ZF
+		if _, ok := registro.dominioLinea[nombre]; ok { // Verificar si se encuentra la linea donde está el nombre
+			var file, err = os.OpenFile(dominioRegistro[dominio].ruta, os.O_RDWR, 0644)
+			if err != nil {
+				log.Println(err)
+				return nil, err
+			}
+			defer file.Close()
+
+			text, err := ioutil.ReadAll(file)
+			
+			file1, err := os.Create(dominioRegistro[dominio].ruta)
+			if err != nil {
+				log.Println(err)
+				return nil, err
+			}
+			defer file1.Close()
+			lineas := strings.Split(string(text), "\n")
+			flag := false
+			for i, linea := range lineas{
+				if i == dominioRegistro[dominio].cantLineas {
+					break
+				}
+				if i != dominioRegistro[dominio].dominioLinea[nombre] - 1 {
+					if i == 0 || flag {
+						_, err = file1.WriteString(linea)
+						flag = false
+					} else {
+						_, err = file1.WriteString("\n" + linea)
+					}
+				} else {
+					_, err = file1.WriteString("\n")
+					flag = true
+				}
+				if err != nil {
+					log.Println(err)
+					return nil, err
+				}
+			}
+		
+		} else{ // Si no se encuentra la linea donde se encuentra el nombre dentro del registro ZF
+			log.Printf("No es posible encontrar en el registro ZF la linea del nombre: " + nombre)
+			return nil, errors.New("No es posible encontrar en el registro ZF la linea del nombre: " + nombre)
+		}
+		log.Println("Linea eliminada del registro ZF")
+	} else { //Si no se encuentra el dominio registrado
+		log.Printf("No se encuentra el dominio registrado: " + dominio)
+		return nil, errors.New("No se encuentra el dominio registrado: " + dominio)
+	}
+
+
+	// Generar respuesta y retornarla
 	respuesta := new(pb.RespuestaAdmin)
 	return respuesta, nil
 }
