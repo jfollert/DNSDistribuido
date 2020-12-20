@@ -12,9 +12,13 @@ import (
 	pb "../proto"
 	"google.golang.org/grpc"
 )
-
+//Revisa si el reloj local mayor a la de la primera respuesta entregada por un dns al azar
 func compararRelojes(local, respuesta []int32) bool{
-	return true
+	for i := 0; i<3; i++{
+		if local[i]>respuesta[i]{
+			return true
+		}}
+	return false
 }
 
 
@@ -71,19 +75,25 @@ func main() {
 				}
 				//Aca se aplica consistencia
 				
-				if relojLocal[words[1]]< resp.Reloj{
+				if compararRelojes(relojLocal[words[1]], resp.Reloj){
+					//Se prepara la siguiente consulta
 					cons := new(pb.Consulta)
 					cons.NombreDominio = words[1]
-					//cons.Ip= memoriaLocal[words[1]].Ip
+					//Especificando una ip
 					cons.Ip= ipLocal[words[1]]
-					resp, err := broker.Get(context.Background(), cons)
+					respu, err := broker.Get(context.Background(), cons)
 					if err != nil {
 					log.Fatalf("Error al llamar a Get(): %s", err)
 					}
-				
+					//Se guarda en primer caso
+					ipLocal[words[1]]= respu.Ip
+					relojLocal[words[1]]= respu.Reloj
 				}
-				ipLocal[words[1]]=resp.Ip
-				relojLocal[words[1]]=resp.Reloj
+				else{
+					//O se guarda la respuesta original, en caso de que bastara.
+					ipLocal[words[1]]= resp.Ip
+					relojLocal[words[1]]= resp.Reloj
+				}
 			}
 		}else {
 			fmt.Println("Usage:\n get")
