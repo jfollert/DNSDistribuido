@@ -64,7 +64,7 @@ func main() {
 				if memoriaLocal[words[1]].reloj< resp.reloj{
 					cons := new(pb.Consulta)
 					cons.nombreDominio = words[1]
-					cons.ip= localIp
+					cons.ip= memoriaLocal[words[1]].ip
 					resp, err := broker.Get(context.Background(), cons)
 					if err != nil {
 					log.Fatalf("Error al llamar a Get(): %s", err)
