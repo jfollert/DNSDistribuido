@@ -12,6 +12,7 @@ import (
 	"strconv"
 	//"io"
 	"errors"
+	"bufio"
 
 	pb "../proto"
 	"google.golang.org/grpc"
@@ -26,6 +27,7 @@ type RegistroZF struct{
 	reloj []int32
 	dominioLinea map[string]int // relaciona el nombre de dominio a la linea que ocupa dentro del archivo de registro
 	cantLineas int
+	lineasBlancas []int
 }
 
 type NodeInfo struct {
@@ -176,6 +178,7 @@ func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuest
 		dominioRegistro[dominio].reloj = []int32{0, 0, 0}
 		dominioRegistro[dominio].dominioLinea = make(map[string]int)
 		dominioRegistro[dominio].cantLineas = 0
+		//dominioRegistro[dominio].lineasBlancas = make([]int)
 		salto = ""
 
 		log.Println("Se ha inicializado un nuevo registro ZF en memoria")
@@ -236,43 +239,55 @@ func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.Res
 	// Remover linea de registro ZF
 	if registro, ok := dominioRegistro[dominio]; ok { // Verificar si se encuentra el dominio en nuestro registro ZF
 		if _, ok := registro.dominioLinea[nombre]; ok { // Verificar si se encuentra la linea donde está el nombre
-			var file, err = os.OpenFile(dominioRegistro[dominio].ruta, os.O_RDWR, 0644)
+			
+			// Abrir el archivo de registro ZF para leer y almacenar en memoria las lineas
+			var readFile, err = os.OpenFile(dominioRegistro[dominio].ruta, os.O_RDWR, 0644)
 			if err != nil {
 				log.Println(err)
 				return nil, err
 			}
-			defer file.Close()
-
-			text, err := ioutil.ReadAll(file)
 			
+			fileScanner := bufio.NewScanner(readFile)
+			fileScanner.Split(bufio.ScanLines)
+			
+			var fileTextLines []string
+			for fileScanner.Scan() {
+				fileTextLines = append(fileTextLines, fileScanner.Text())
+			}
+		
+			readFile.Close() // Cerramos el archivo
+
+			// Verificar que la linea a borrar no se encuentre vacía
+			lineaBorrar := dominioRegistro[dominio].dominioLinea[nombre] - 1
+			if fileTextLines[lineaBorrar] == "" {
+				log.Println("[ERROR] La linea del registro ZF asociada al nombre " + nombre + " ya está vacía")
+				return nil, errors.New("La linea del registro ZF asociada al nombre " + nombre + " ya está vacía")
+			}
+
+			// Verificar consistencia del tamaño de las lineas leidas y las lineas del registro zf
+			diferencia := dominioRegistro[dominio].cantLineas - len(fileTextLines)
+			if diferencia != 0 {
+				for i := 0; i < diferencia; i++ {
+					fileTextLines = append(fileTextLines, "")
+				}
+			}
+
+			// Crear un nuevo archivo en blanco para el registro ZF
 			file1, err := os.Create(dominioRegistro[dominio].ruta)
 			if err != nil {
 				log.Println(err)
 				return nil, err
 			}
 			defer file1.Close()
-			lineas := strings.Split(string(text), "\n")
-			flag := false
-			for i, linea := range lineas{
-				if i == dominioRegistro[dominio].cantLineas {
-					break
-				}
-				if i != dominioRegistro[dominio].dominioLinea[nombre] - 1 {
-					if i == 0 || flag {
-						_, err = file1.WriteString(linea)
-						flag = false
-					} else {
-						_, err = file1.WriteString("\n" + linea)
-					}
-				} else {
-					_, err = file1.WriteString("\n")
-					flag = true
-				}
-				if err != nil {
-					log.Println(err)
-					return nil, err
-				}
+
+			fileTextLines[lineaBorrar] = ""
+
+			_, err = file1.WriteString(strings.Join(fileTextLines, "\n"))
+			if err != nil {
+				log.Println(err)
+				return nil, err
 			}
+
 		
 		} else{ // Si no se encuentra la linea donde se encuentra el nombre dentro del registro ZF
 			log.Printf("No es posible encontrar en el registro ZF la linea del nombre: " + nombre)
@@ -283,7 +298,6 @@ func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.Res
 		log.Printf("No se encuentra el dominio registrado: " + dominio)
 		return nil, errors.New("No se encuentra el dominio registrado: " + dominio)
 	}
-		
 
 	// Agregar información a Log de cambios
 	logFile, err := os.OpenFile(dominioRegistro[dominio].rutaLog,
@@ -325,58 +339,110 @@ func (s *Server) Update(ctx context.Context, message *pb.ConsultaUpdate) (*pb.Re
 	// Actualizar linea de registro ZF
 	if registro, ok := dominioRegistro[dominio]; ok { // Verificar si se encuentra el dominio en nuestro registro ZF
 		if _, ok := registro.dominioLinea[nombre]; ok { // Verificar si se encuentra la linea donde está el nombre
-			var file, err = os.OpenFile(dominioRegistro[dominio].ruta, os.O_RDWR, 0644)
+			
+			// Abrir el archivo de registro ZF para leer y almacenar en memoria las lineas
+			var readFile, err = os.OpenFile(dominioRegistro[dominio].ruta, os.O_RDWR, 0644)
 			if err != nil {
 				log.Println(err)
 				return nil, err
 			}
-			defer file.Close()
-
-			text, err := ioutil.ReadAll(file)
 			
+			fileScanner := bufio.NewScanner(readFile)
+			fileScanner.Split(bufio.ScanLines)
+			
+			var fileTextLines []string
+			for fileScanner.Scan() {
+				fileTextLines = append(fileTextLines, fileScanner.Text())
+			}
+		
+			readFile.Close() // Cerramos el archivo
+
+			// Verificar que la linea a actualizar no se encuentre vacía
+			lineaActualizar := dominioRegistro[dominio].dominioLinea[nombre] - 1
+			if fileTextLines[lineaActualizar] == "" {
+				log.Println("[ERROR] La linea del registro ZF asociada al nombre " + nombre + " está vacía")
+				return nil, errors.New("La linea del registro ZF asociada al nombre " + nombre + " está vacía")
+			}
+
+			// Verificar contenido dentro de la linea a actualizar
+			lineaVieja := strings.Split(fileTextLines[lineaActualizar], " IN A ")
+			if len(lineaVieja) != 2 || lineaVieja[0] == "" || lineaVieja[1] == ""{
+				log.Println("[ERROR] Datos corruptos en el registro ZF: " + fileTextLines[lineaActualizar])
+				return nil, errors.New("Datos corruptos en el registro ZF: " + fileTextLines[lineaActualizar])
+			}
+
+			ip := lineaVieja[1]
+			
+			// Actualizar los valores requeridos
+			var cambio string
+			if message.Opcion == "ip" {
+				ip = message.Param
+				cambio = ip
+			} else if message.Opcion == "name" {
+				nombre = message.Param
+				cambio = nombre + "." + dominio
+			}
+			
+			// Generar la nueva linea que se insertará en el registro ZF e insertarla
+			lineaNueva := fmt.Sprintf("%s.%s IN A %s", nombre, dominio, ip)
+			fmt.Println(lineaNueva)
+			fileTextLines[lineaActualizar] = lineaNueva
+
+			// Crear un nuevo archivo en blanco para el registro ZF
 			file1, err := os.Create(dominioRegistro[dominio].ruta)
 			if err != nil {
 				log.Println(err)
 				return nil, err
 			}
 			defer file1.Close()
-			lineas := strings.Split(string(text), "\n")
-			flag := false
-			for i, linea := range lineas{
-				if i == dominioRegistro[dominio].cantLineas {
-					break
-				}
-				if i != dominioRegistro[dominio].dominioLinea[nombre] - 1 {
-					if i == 0 || flag {
-						_, err = file1.WriteString(linea)
-						flag = false
-					} else {
-						_, err = file1.WriteString("\n" + linea)
-					}
-				} else {
-					_, err = file1.WriteString("\n")
-					flag = true
-				}
-				if err != nil {
-					log.Println(err)
-					return nil, err
-				}
+
+			// Escribir en el archivo las nuevas lineas
+			_, err = file1.WriteString(strings.Join(fileTextLines, "\n"))
+			if err != nil {
+				log.Println(err)
+				return nil, err
 			}
+
+			// Agregar información a Log de cambios
+			logFile, err := os.OpenFile(dominioRegistro[dominio].rutaLog,
+			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			if err != nil {
+				log.Println(err)
+				return nil, err
+			}
+			defer logFile.Close()
+			if _, err := logFile.WriteString("\n" + "update " + nombre + "." + dominio + " " + cambio); err != nil {
+				log.Println(err)
+				return nil, err
+			}
+			log.Println("Información agregada al Log de cambios")
 		
+			// Actualizar reloj de vector
+			id, err := strconv.Atoi(string(ID_DNS[3]))
+			if err != nil {
+				log.Println(err)
+				return nil, err
+			}
+			dominioRegistro[dominio].reloj[id - 1] += 1
+			log.Println("Reloj actualizado")
+		
+			// Remover mapeo de nombre a la linea en que se encuentra
+			delete(dominioRegistro[dominio].dominioLinea, nombre)
+			dominioRegistro[dominio].dominioLinea[nombre] = lineaActualizar + 1
+		
+			// Generar respuesta y retornarla
+			respuesta := new(pb.RespuestaAdmin)
+			respuesta.Reloj = dominioRegistro[dominio].reloj 
+			return respuesta, nil
+
 		} else{ // Si no se encuentra la linea donde se encuentra el nombre dentro del registro ZF
-			log.Printf("No es posible encontrar en el registro ZF la linea del nombre: " + nombre)
+			log.Printf("[ERROR] No es posible encontrar en el registro ZF la linea del nombre: " + nombre)
 			return nil, errors.New("No es posible encontrar en el registro ZF la linea del nombre: " + nombre)
 		}
-		log.Println("Linea eliminada del registro ZF")
 	} else { //Si no se encuentra el dominio registrado
-		log.Printf("No se encuentra el dominio registrado: " + dominio)
+		log.Printf("[ERROR] No se encuentra el dominio registrado: " + dominio)
 		return nil, errors.New("No se encuentra el dominio registrado: " + dominio)
 	}
-
-
-	// Generar respuesta y retornarla
-	respuesta := new(pb.RespuestaAdmin)
-	return respuesta, nil
 }
 
 
