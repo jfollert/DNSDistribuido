@@ -45,6 +45,8 @@ type Config struct {
 var dominioRegistro map[string]*RegistroZF // relaciona el nombre de dominio con su Registro ZF respectivo
 var config Config
 var ID_DNS string
+var IP_DNS string
+var PORT_DNS string
 
 //// FUNCIONES
 func cargarConfig(file string) {
@@ -149,7 +151,7 @@ func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, 
 }
 
 // Comando CREATE
-func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.RespuestaAdmin, error){
+func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, error){
 	// Separar nombre y el dominio en diferentes strings
 	nombre, dominio := separarNombreDominio(message.NombreDominio)
 	salto := "\n"
@@ -225,8 +227,10 @@ func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuest
 	dominioRegistro[dominio].dominioLinea[nombre] = dominioRegistro[dominio].cantLineas
 
 	// Generar respuesta y retornarla
-	respuesta := new(pb.RespuestaAdmin) 
-	respuesta.Reloj = dominioRegistro[dominio].reloj 
+	respuesta := new(pb.Respuesta) 
+	respuesta.Reloj = dominioRegistro[dominio].reloj
+	respuesta.Ip = IP_DNS
+	respuesta.Port = PORT_DNS
 	return respuesta, nil
 
 }
@@ -452,10 +456,13 @@ func main() {
 	// Cargar archivo de configuración
 	cargarConfig("config.json")
 
-	// Definir e inicializar variables
+	// Inicializar variables
 	log.Printf("Inicializando variables")
 	dominioRegistro = make(map[string]*RegistroZF)
 	ID_DNS = ""
+	IP_DNS = ""
+	PORT_DNS = ""
+
 
 	// Iniciar variables que mantenga las conexiones establecidas entre nodos
 	conexionesNodos := make(map[string]*grpc.ClientConn)
@@ -481,6 +488,8 @@ func main() {
 					//log.Fatalf("Error al llamar a ObtenerEstado(): %s", err)
 					log.Printf("Nodo DNS disponible: " + id)
 					ID_DNS = id
+					IP_DNS = ip
+					PORT_DNS = port
 					iniciarNodo(port)
 					break
 				}

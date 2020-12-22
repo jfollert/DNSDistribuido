@@ -37,6 +37,3 @@ protoc -I proto --go_out=plugins=grpc:proto proto/*.proto
 
 ## CONSIDERACIONES
 - Todos los nombres de dominios deben seguir la estructura *nombre.dominio*, una mayor cantidad de puntos causará errores.
-
-## PENDIENTES/BUGS
-- Cuando se realiza el delete y el nodo no tiene el registro se crashea.

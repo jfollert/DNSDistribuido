@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"net"
 	"strings"
-	//"math/rand"
+	"math/rand"
 
 	pb "../proto"
 	"google.golang.org/grpc"
@@ -42,8 +42,8 @@ func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, 
 	respuesta := new(pb.Respuesta)
 	if strings.Compare("", message.NombreDominio) == 0 { // Si no se recibe un nombreDominio
 		log.Printf("Recibida solicitud desde administrador, buscando servidor DNS")
-		//idRandom := rand.Intn(3)
-		idRandom := 0
+		idRandom := rand.Intn(3)
+		//idRandom := 0
 		log.Printf("Servidor DNS obtenido de forma aleatoria: DNS%d", idRandom+1)
 		respuesta.Ip = config.DNS[idRandom].Ip
 		respuesta.Port = config.DNS[idRandom].Port
@@ -51,8 +51,8 @@ func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, 
 	return respuesta, nil
 }
 
-func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.RespuestaAdmin, error){
-	return new(pb.RespuestaAdmin), nil
+func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, error){
+	return new(pb.Respuesta), nil
 }
 
 func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.RespuestaAdmin, error){

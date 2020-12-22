@@ -38,7 +38,7 @@ message RespuestaAdmin{
 service ServicioNodo{
     rpc ObtenerEstado(Vacio) returns(Estado);
     rpc Get(Consulta) returns(Respuesta);
-    rpc Create(Consulta) returns(RespuestaAdmin);
+    rpc Create(Consulta) returns(Respuesta);
     rpc Delete(ConsultaAdmin) returns(RespuestaAdmin);
     rpc Update(ConsultaUpdate) returns(RespuestaAdmin);
 }

@@ -12,14 +12,18 @@ import (
 	"google.golang.org/grpc"
 )
 
-// ESTRUCTURAS
-type Cambio struct {
-	cambio string
-	reloj [3]int
-	ipDNS string
+//// ESTRUCTURAS
+type RegistroCambio struct {
+	Reloj []int32
+	IP string
+	Port string
 }
 
+//// VARIABLES GLOBALES
+var dominioRegistro map[string]*RegistroCambio // Almacena para cada dominio la información del último cambio
 
+
+//// FUNCIONES
 func conectarNodo(ip string, port string) *grpc.ClientConn {
 	var conn *grpc.ClientConn
 	log.Printf("Intentando iniciar conexión con " + ip + ":" + port)
@@ -31,17 +35,31 @@ func conectarNodo(ip string, port string) *grpc.ClientConn {
 	return conn
 }
 
+func separarNombreDominio(nombreDominio string) (string, string) {
+	split := strings.Split(nombreDominio, ".")
+	var nombre string
+	var dominio string
+
+	if len(split) == 2{
+	nombre = split[0]
+	dominio = split[1]
+	} else {
+		log.Fatal("[ERROR] Error dividiendo la variable NombreDominio")
+	}
+	return nombre, dominio
+}
+
 
 func main() {
 	log.Printf("= INICIANDO ADMIN =\n")
 
-	//log.Printf("Inicializando variables")
+	log.Printf("Inicializando variables")
+	dominioRegistro = make(map[string]*RegistroCambio)
 	
 	log.Println("Estableciendo conexión con el Broker")
 	conn := conectarNodo("127.0.0.1", "9000")
 	broker := pb.NewServicioNodoClient(conn)
 
-	//log.Printf("Conectado al nodo " + ip + ":" + port)
 	estado, err := broker.ObtenerEstado(context.Background(), new(pb.Vacio))
 	if err != nil {
 		log.Fatalf("Error al llamar a ObtenerEstado(): %s", err)
@@ -63,27 +81,55 @@ func main() {
 				log.Printf("[ERROR] Usar:\n\t create <nombre>.<dominio> <IP>\n")
 				continue
 			}
+			
+			
+			_, dominio := separarNombreDominio(words[1])
+			var ipDNS string
+			var portDNS string
+			var registroCambio *RegistroCambio
 
-			// Solicitar un servidor DNS aleatorio al Broker
-			resp, err := broker.Get(context.Background(), new(pb.Consulta))
-			if err != nil {
-			log.Fatalf("Error al llamar a Get(): %s", err)
+			
+			// Verificar si hay que solicitar un servidor DNS al broker o usar el registrado
+			if _, ok := dominioRegistro[dominio]; ok { // Si el registro está en memoria
+				registroCambio = dominioRegistro[dominio]
+				ipDNS = registroCambio.IP
+				portDNS = registroCambio.Port
+			} else { // Si el registro no está en memoria
+				// Solicitar un servidor DNS aleatorio al Broker
+				resp, err := broker.Get(context.Background(), new(pb.Consulta))
+				if err != nil {
+				log.Fatalf("Error al llamar a Get(): %s", err)
+				}
+				ipDNS = resp.Ip
+				portDNS = resp.Port
+
+				// Iniciar el registro en memoria
+				registroCambio = new(RegistroCambio)
 			}
-
+			
+			// Conectar al servidor DNS
 			log.Println("Estableciendo conexión con el nodo DNS")	
-			conn := conectarNodo(resp.Ip, resp.Port)
+			conn := conectarNodo(ipDNS, portDNS)
 			dns := pb.NewServicioNodoClient(conn)
 
+			// Generar la consulta y enviarla
 			consulta := new(pb.Consulta)
 			consulta.NombreDominio = words[1]
 			consulta.Ip = words[2]
-
 			dnsResp, err := dns.Create(context.Background(), consulta)
 			if err != nil {
 				log.Printf("Error al llamar a Create(): %s", err)
 				continue
 				}
 			log.Printf("Create exitoso! - Reloj: %+v", dnsResp.Reloj)
+
+			// Actualizar la información del reloj en el registro
+			registroCambio.Reloj = dnsResp.Reloj
+			registroCambio.IP = dnsResp.Ip
+			registroCambio.Port = dnsResp.Port
+			dominioRegistro[dominio] = registroCambio
+			
+			
 
 
 		//// Comando UPDATE
