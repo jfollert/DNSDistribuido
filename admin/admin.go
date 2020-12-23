@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"io/ioutil"
+	"encoding/json"
 
 	pb "../proto"
 	"google.golang.org/grpc"
@@ -19,11 +21,33 @@ type RegistroCambio struct {
 	Port string
 }
 
+type NodeInfo struct {
+	Id   string `json:"id"`
+	Ip   string `json:"ip"`
+	Port string `json:"port"`
+}
+
+type Config struct {
+	DNS []NodeInfo `json:"DNS"`
+	Broker NodeInfo   `json:"Broker"`
+}
+
 //// VARIABLES GLOBALES
+var config Config
 var dominioRegistro map[string]*RegistroCambio // Almacena para cada dominio la información del último cambio
 
-
 //// FUNCIONES
+func cargarConfig(file string) {
+    log.Printf("Cargando archivo de configuración")
+    configFile, err := ioutil.ReadFile(file)
+    if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	json.Unmarshal(configFile, &config)
+	log.Printf("Archivo de configuración cargado")
+}
+
 func conectarNodo(ip string, port string) *grpc.ClientConn {
 	var conn *grpc.ClientConn
 	log.Printf("Intentando iniciar conexión con " + ip + ":" + port)
@@ -53,11 +77,16 @@ func separarNombreDominio(nombreDominio string) (string, string) {
 func main() {
 	log.Printf("= INICIANDO ADMIN =\n")
 
-	log.Printf("Inicializando variables")
+	// Cargar archivo de configuración
+	log.Println("Cargando archivo de configuración")
+	cargarConfig("config.json")
+
+	// Inicializar variables
+	log.Println("Inicializando variables")
 	dominioRegistro = make(map[string]*RegistroCambio)
 	
 	log.Println("Estableciendo conexión con el Broker")
-	conn := conectarNodo("127.0.0.1", "9000")
+	conn := conectarNodo(config.Broker.Ip, config.Broker.Port)
 	broker := pb.NewServicioNodoClient(conn)
 
 	estado, err := broker.ObtenerEstado(context.Background(), new(pb.Vacio))
@@ -72,6 +101,7 @@ func main() {
 		fmt.Print("-> ")
 		text, _ := reader.ReadString('\n')
 		text = strings.Replace(text, "\n", "", -1)
+		text = strings.ToLower(text)
 		words := strings.Split(text, " ")
 		
 		//// Comando CREATE

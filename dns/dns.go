@@ -147,7 +147,62 @@ func (s *Server) ObtenerEstado(ctx context.Context, message *pb.Vacio) (*pb.Esta
 
 // Comando GET
 func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, error){
-	return new(pb.Respuesta), nil
+	// Separar nombre y el dominio en diferentes strings
+	log.Println("NOMBRE: " + message.NombreDominio)
+	nombre, dominio := separarNombreDominio(message.NombreDominio)
+
+	// Remover linea de registro ZF
+	if registro, ok := dominioRegistro[dominio]; ok { // Verificar si se encuentra el dominio en nuestro registro ZF
+		if _, ok := registro.dominioLinea[nombre]; ok { // Verificar si se encuentra la linea donde está el nombre
+			
+			// Abrir el archivo de registro ZF para leer y almacenar en memoria las lineas
+			var readFile, err = os.OpenFile(dominioRegistro[dominio].ruta, os.O_RDWR, 0644)
+			if err != nil {
+				log.Println(err)
+				return nil, err
+			}
+			
+			fileScanner := bufio.NewScanner(readFile)
+			fileScanner.Split(bufio.ScanLines)
+			
+			var fileTextLines []string
+			for fileScanner.Scan() {
+				fileTextLines = append(fileTextLines, fileScanner.Text())
+			}
+			readFile.Close() // Cerramos el archivo
+
+			linea := fileTextLines[registro.dominioLinea[nombre] - 1]
+
+			// Verificar que la linea a leer no se encuentre vacía
+			if linea == "" {
+				log.Println("[ERROR] La linea del registro ZF asociada al nombre " + nombre + " está vacía")
+				return nil, errors.New("La linea del registro ZF asociada al nombre " + nombre + " está vacía")
+			}
+
+			// Verificar contenido dentro de la linea a actualizar
+			lineaDividida := strings.Split(linea, " IN A ")
+			if len(lineaDividida) != 2 || lineaDividida[0] == "" || lineaDividida[1] == ""{
+				log.Println("[ERROR] Datos corruptos en el registro ZF: " + linea)
+				return nil, errors.New("Datos corruptos en el registro ZF: " + linea)
+			}
+
+			// Generamos y retornamos la respuesta a la consulta
+			respuesta := new(pb.Respuesta)
+			respuesta.Respuesta = lineaDividida[1]
+			respuesta.Ip = IP_DNS
+			respuesta.Port = PORT_DNS
+			respuesta.Reloj = registro.reloj
+			return respuesta, nil
+
+		
+		} else{ // Si no se encuentra la linea donde se encuentra el nombre dentro del registro ZF
+			log.Printf("No es posible encontrar en el registro ZF la linea del nombre: " + nombre)
+			return nil, errors.New("No es posible encontrar en el registro ZF la linea del nombre: " + nombre)
+		}
+	} else { //Si no se encuentra el dominio registrado
+		log.Printf("No se encuentra el dominio registrado: " + dominio)
+		return nil, errors.New("No se encuentra el dominio registrado: " + dominio)
+	}
 }
 
 // Comando CREATE
@@ -297,7 +352,6 @@ func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.Res
 			log.Printf("No es posible encontrar en el registro ZF la linea del nombre: " + nombre)
 			return nil, errors.New("No es posible encontrar en el registro ZF la linea del nombre: " + nombre)
 		}
-		log.Println("Linea eliminada del registro ZF")
 	} else { //Si no se encuentra el dominio registrado
 		log.Printf("No se encuentra el dominio registrado: " + dominio)
 		return nil, errors.New("No se encuentra el dominio registrado: " + dominio)

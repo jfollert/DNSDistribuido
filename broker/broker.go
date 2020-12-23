@@ -8,14 +8,13 @@ import (
 	"os"
 	"encoding/json"
 	"net"
-	"strings"
 	"math/rand"
 
 	pb "../proto"
 	"google.golang.org/grpc"
 )
 
-// ESTRUCTURAS
+//// ESTRUCTURAS
 type Server struct{}
 
 type NodeInfo struct {
@@ -29,9 +28,19 @@ type Config struct {
 	Broker NodeInfo `json:"Broker"`
 }
 
+//// VARIABLES GLOBALES
 var config Config
 
-// FUNCIONES DEL SERVER
+//// FUNCIONES
+func dnsAleatorio() (string, string){
+	idRandom := rand.Intn(3)
+	//idRandom := 0
+	log.Printf("Servidor DNS obtenido de forma aleatoria: DNS%d\n", idRandom+1)
+	return config.DNS[idRandom].Ip, config.DNS[idRandom].Port
+}
+
+
+//// FUNCIONES DEL SERVER
 func (s *Server) ObtenerEstado(ctx context.Context, message *pb.Vacio) (*pb.Estado, error){
 	estado := new(pb.Estado)
 	estado.Estado = "OK"
@@ -39,15 +48,37 @@ func (s *Server) ObtenerEstado(ctx context.Context, message *pb.Vacio) (*pb.Esta
 }
 
 func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, error){
-	respuesta := new(pb.Respuesta)
-	if strings.Compare("", message.NombreDominio) == 0 { // Si no se recibe un nombreDominio
-		log.Printf("Recibida solicitud desde administrador, buscando servidor DNS")
-		idRandom := rand.Intn(3)
-		//idRandom := 0
-		log.Printf("Servidor DNS obtenido de forma aleatoria: DNS%d", idRandom+1)
-		respuesta.Ip = config.DNS[idRandom].Ip
-		respuesta.Port = config.DNS[idRandom].Port
+	var dnsIP string
+	var dnsPort string
+	var respuesta *pb.Respuesta
+
+	// Seleccionar servidor DNS
+	if message.Ip != "" && message.Port != "" {  // Si se recibieron IP y puerto como argumentos
+		dnsIP = message.Ip
+		dnsPort = message.Port
+	} else { // Si se debe entregar un servidor aleatorio
+		dnsIP, dnsPort = dnsAleatorio()
 	}
+
+	if message.Ip == "" && message.Port == "" && message.NombreDominio == "" { // Se es una consulta del administrador
+		log.Println("Enviando DNS aleatorio al Admin")
+		respuesta = &pb.Respuesta{Ip: dnsIP, Port: dnsPort}
+		return respuesta, nil
+	}
+
+	conn, err := conectarNodo(dnsIP, dnsPort)
+	if err != nil{
+		log.Printf("Error al intentar realizar conexión gRPC: %s\n", err)
+		return nil, err
+	}
+
+	dnsServer := pb.NewServicioNodoClient(conn)
+	respuesta, err = dnsServer.Get(context.Background(), message)
+	if err != nil{
+		log.Printf("Error al intentar conectar al servidor del servicio: %s\n", err)
+		return nil, err
+	}
+
 	return respuesta, nil
 }
 
@@ -98,11 +129,24 @@ func iniciarNodo(port string) {
 
 }
 
+func conectarNodo(ip string, port string) (*grpc.ClientConn, error) {
+	var conn *grpc.ClientConn
+	log.Printf("Intentando iniciar conexión con " + ip + ":" + port)
+	host := ip + ":" + port
+	conn, err := grpc.Dial(host, grpc.WithInsecure())
+	if err != nil {
+		//log.Printf("No se pudo establecer la conexión con " + ip + ":" + strconv.Itoa(port))
+		return nil, err
+	}
+	//log.Printf("Conexión establecida con " + ip + ":" + strconv.Itoa(port))
+	return conn, nil
+}
+
 func main() {
 	log.Println("= INICIANDO BROKER =")
 
 	// Cargar archivo de configuración
 	cargarConfig("config.json")
 
-	iniciarNodo("9000")
+	iniciarNodo(config.Broker.Port)
 }

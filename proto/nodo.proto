@@ -11,6 +11,7 @@ message Estado{
 message Consulta{
     string nombreDominio = 1;
     string ip = 2;
+    string port = 3;
 }
 
 message ConsultaAdmin{
@@ -27,7 +28,8 @@ message ConsultaUpdate{
 message Respuesta{
     string ip = 1;
     string port = 2;
-    repeated int32 reloj = 3;
+    string respuesta = 3;
+    repeated int32 reloj = 4;
 }
 
 message RespuestaAdmin{
