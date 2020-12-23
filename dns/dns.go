@@ -13,6 +13,7 @@ import (
 	//"io"
 	"errors"
 	"bufio"
+	"time"
 
 	pb "../proto"
 	"google.golang.org/grpc"
@@ -540,12 +541,25 @@ func main() {
 				estado, err := c.ObtenerEstado(context.Background(), new(pb.Vacio))
 				if err != nil {
 					//log.Fatalf("Error al llamar a ObtenerEstado(): %s", err)
-					log.Printf("Nodo DNS disponible: " + id)
+					log.Println("Nodo DNS disponible: " + id)
 					ID_DNS = id
 					IP_DNS = ip
 					PORT_DNS = port
-					iniciarNodo(port)
-					break
+					go iniciarNodo(port)
+
+					log.Println("Iniciando Timer")
+					ticker := time.NewTicker(5 * time.Second)
+					quit := make(chan struct{})
+					
+					for {
+					select {
+						case <- ticker.C:
+							log.Println("5 secs")
+						case <- quit:
+							ticker.Stop()
+							break
+						}
+					}
 				}
 				if estado.Estado == "OK" {
 					log.Printf("Almacenando conexión a nodo DNS: " + id)
