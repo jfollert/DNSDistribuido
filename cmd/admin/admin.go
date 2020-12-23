@@ -7,10 +7,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"io/ioutil"
-	"encoding/json"
 
-	pb "../proto"
+	pb "github.com/jfomu/DNSDistribuido/internal/proto"
+	"github.com/jfomu/DNSDistribuido/internal/config"
 	"google.golang.org/grpc"
 )
 
@@ -21,33 +20,12 @@ type RegistroCambio struct {
 	Port string
 }
 
-type NodeInfo struct {
-	Id   string `json:"id"`
-	Ip   string `json:"ip"`
-	Port string `json:"port"`
-}
-
-type Config struct {
-	DNS []NodeInfo `json:"DNS"`
-	Broker NodeInfo   `json:"Broker"`
-}
 
 //// VARIABLES GLOBALES
-var config Config
+var configuracion *config.Config
 var dominioRegistro map[string]*RegistroCambio // Almacena para cada dominio la información del último cambio
 
 //// FUNCIONES
-func cargarConfig(file string) {
-    log.Printf("Cargando archivo de configuración")
-    configFile, err := ioutil.ReadFile(file)
-    if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	json.Unmarshal(configFile, &config)
-	log.Printf("Archivo de configuración cargado")
-}
-
 func conectarNodo(ip string, port string) *grpc.ClientConn {
 	var conn *grpc.ClientConn
 	log.Printf("Intentando iniciar conexión con " + ip + ":" + port)
@@ -79,14 +57,14 @@ func main() {
 
 	// Cargar archivo de configuración
 	log.Println("Cargando archivo de configuración")
-	cargarConfig("config.json")
+	configuracion = config.GenConfig("config.json")
 
 	// Inicializar variables
 	log.Println("Inicializando variables")
 	dominioRegistro = make(map[string]*RegistroCambio)
 	
 	log.Println("Estableciendo conexión con el Broker")
-	conn := conectarNodo(config.Broker.Ip, config.Broker.Port)
+	conn := conectarNodo(configuracion.Broker.Ip, configuracion.Broker.Port)
 	broker := pb.NewServicioNodoClient(conn)
 
 	estado, err := broker.ObtenerEstado(context.Background(), new(pb.Vacio))

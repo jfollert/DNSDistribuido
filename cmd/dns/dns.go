@@ -2,20 +2,19 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"encoding/json"
 	"os"
 	"log"
 	"net"
 	"context"
 	"strings"
 	"strconv"
-	//"io"
 	"errors"
 	"bufio"
 	"time"
+	
 
-	pb "../proto"
+	pb "github.com/jfomu/DNSDistribuido/internal/proto"
+	"github.com/jfomu/DNSDistribuido/internal/config"
 	"google.golang.org/grpc"
 )
 
@@ -31,36 +30,14 @@ type RegistroZF struct{
 	lineasBlancas []int
 }
 
-type NodeInfo struct {
-	Id   string `json:"id"`
-	Ip   string `json:"ip"`
-	Port string `json:"port"`
-}
-
-type Config struct {
-	DNS []NodeInfo `json:"DNS"`
-	Broker NodeInfo   `json:"Broker"`
-}
-
 //// VARIABLES GLOBALES
 var dominioRegistro map[string]*RegistroZF // relaciona el nombre de dominio con su Registro ZF respectivo
-var config Config
+var configuracion *config.Config
 var ID_DNS string
 var IP_DNS string
 var PORT_DNS string
 
 //// FUNCIONES
-func cargarConfig(file string) {
-    log.Printf("Cargando archivo de configuración")
-    configFile, err := ioutil.ReadFile(file)
-    if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	json.Unmarshal(configFile, &config)
-	log.Printf("Archivo de configuración cargado")
-}
-
 func iniciarNodo(port string) {
 	// Iniciar servidor gRPC
 	log.Printf("Iniciando servidor gRPC en el puerto " + port)
@@ -214,23 +191,33 @@ func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuest
 
 	// Agregar información a registro ZF
 	if _, ok := dominioRegistro[dominio]; !ok {  // Si no existe un registro ZF asociado al dominio
-		rutaRegistro := "dns/registros/" + ID_DNS + "_" + dominio + ".zf"
-		rutaLog := "dns/logs/" + ID_DNS + "_" + dominio + ".log"
+		nombreArchivo := ID_DNS + "_" + dominio
+		rutaRegistros := "dns/registros/"
+		rutaLogs := "dns/logs/"
 		
 		// Verificar que no existan los archivos asociados al registro
-		var _, err1 = os.Stat(rutaRegistro)
-		var _, err2 = os.Stat(rutaLog)
+		_, err1 := os.Stat(rutaRegistros + nombreArchivo + ".zf")
+	 	_, err2 := os.Stat(rutaLogs + nombreArchivo + ".log")
 		if !os.IsNotExist(err1) || !os.IsNotExist(err2) { // Si alguno de los archivos ya existe
 			log.Println("Se han encotrado los archivos asociados al registro pero el registro no se encuentra en memoria.")
 			return nil, errors.New("Se han encotrado los archivos asociados al registro pero el registro no se encuentra en memoria.")
+		} 
+
+		// Verificar que existan las carpetas registros/ y logs/
+		_, err1 = os.Stat(rutaRegistros)
+		_, err2 = os.Stat(rutaLogs)
+		if os.IsNotExist(err1) || os.IsNotExist(err2) { 
+			log.Println("Creando directorios registros/ y logs/")
+			os.Mkdir(rutaRegistros, os.ModeDir)
+			os.Mkdir(rutaLogs, os.ModeDir)
 		} 
 
 		// Iniciar nuevo registro ZF en memoria
 		dominioRegistro[dominio] = new(RegistroZF)
 		
 		// Asociar las rutas correspondientes al registro ZF
-		dominioRegistro[dominio].ruta = rutaRegistro
-		dominioRegistro[dominio].rutaLog = rutaLog
+		dominioRegistro[dominio].ruta = rutaRegistros + nombreArchivo + ".zf"
+		dominioRegistro[dominio].rutaLog = rutaLogs + nombreArchivo + ".log"
 
 		// Inicializar variables del registro ZF
 		dominioRegistro[dominio].reloj = []int32{0, 0, 0}
@@ -509,7 +496,8 @@ func main() {
 	log.Printf("= INICIANDO DNS SERVER =")
 
 	// Cargar archivo de configuración
-	cargarConfig("config.json")
+	configName := "config.json"
+	configuracion = config.GenConfig(configName)
 
 	// Inicializar variables
 	log.Printf("Inicializando variables")
@@ -518,14 +506,13 @@ func main() {
 	IP_DNS = ""
 	PORT_DNS = ""
 
-
 	// Iniciar variables que mantenga las conexiones establecidas entre nodos
 	conexionesNodos := make(map[string]*grpc.ClientConn)
 	conexionesGRPC := make(map[string]pb.ServicioNodoClient)
 
 	// Identificar el servidor DNS correspondiente a la IP de la máquina
 	machineIPs := obtenerListaIPs() // Obtener lista de IPs asociadas a la máquina
-	for _, dns := range config.DNS{ // Iterar sobre las IP configuradas para servidores DNS
+	for _, dns := range configuracion.DNS{ // Iterar sobre las IP configuradas para servidores DNS
 		_, found := Find(machineIPs, dns.Ip)
 		if found { // En caso de que la IP configurada coincida con alguna de las IPs de la máquina
 			id := dns.Id
@@ -567,6 +554,9 @@ func main() {
 					conexionesGRPC[id] = c
 				}
 			}
+		} else {
+			log.Printf("No se ha encontrado la dirección IP de la máquina en el archivo de configuración: %s", configName)
+			break
 		}
 	}
 

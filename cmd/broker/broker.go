@@ -1,42 +1,29 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"io/ioutil"
 	"context"
-	"os"
-	"encoding/json"
 	"net"
 	"math/rand"
+	"errors"
 
-	pb "../proto"
+	pb "github.com/jfomu/DNSDistribuido/internal/proto"
+	"github.com/jfomu/DNSDistribuido/internal/config"
 	"google.golang.org/grpc"
 )
 
 //// ESTRUCTURAS
 type Server struct{}
 
-type NodeInfo struct {
-	Id string `json:"id"`
-	Ip string `json:"ip"`
-	Port string `json:"port"`
-}
-
-type Config struct {
-	DNS[]NodeInfo `json:"DNS"`
-	Broker NodeInfo `json:"Broker"`
-}
-
 //// VARIABLES GLOBALES
-var config Config
+var configuracion *config.Config
 
 //// FUNCIONES
 func dnsAleatorio() (string, string){
 	idRandom := rand.Intn(3)
 	//idRandom := 0
 	log.Printf("Servidor DNS obtenido de forma aleatoria: DNS%d\n", idRandom+1)
-	return config.DNS[idRandom].Ip, config.DNS[idRandom].Port
+	return configuracion.DNS[idRandom].Ip, configuracion.DNS[idRandom].Port
 }
 
 
@@ -83,31 +70,20 @@ func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, 
 }
 
 func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, error){
-	return new(pb.Respuesta), nil
+	return nil, errors.New("Método Create() no implementado en este nodo")
 }
 
 func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.RespuestaAdmin, error){
-	return new(pb.RespuestaAdmin), nil
+	return nil, errors.New("Método Delete() no implementado en este nodo")
 }
 
 
 func (s *Server) Update(ctx context.Context, message *pb.ConsultaUpdate) (*pb.RespuestaAdmin, error){
-	return new(pb.RespuestaAdmin), nil
+	return nil, errors.New("Método Update() no implementado en este nodo")
 }
 
 
 // FUNCIONES
-func cargarConfig(file string) {
-    log.Printf("Cargando archivo de configuración")
-    configFile, err := ioutil.ReadFile(file)
-    if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	json.Unmarshal(configFile, &config)
-	log.Printf("Archivo de configuración cargado")
-}
-
 func iniciarNodo(port string) {
 	// Iniciar servidor gRPC
 	log.Printf("Iniciando servidor gRPC en el puerto " + port)
@@ -146,7 +122,7 @@ func main() {
 	log.Println("= INICIANDO BROKER =")
 
 	// Cargar archivo de configuración
-	cargarConfig("config.json")
+	configuracion = config.GenConfig("config.json")
 
-	iniciarNodo(config.Broker.Port)
+	iniciarNodo(configuracion.Broker.Port)
 }

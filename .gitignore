@@ -1,2 +1,2 @@
-dns/logs/*
-dns/registros/*
+cmd/dns/logs/*
+cmd/dns/registros/*
