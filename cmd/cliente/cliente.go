@@ -10,7 +10,8 @@ import (
 
 	pb "github.com/jfomu/DNSDistribuido/internal/proto"
 	"github.com/jfomu/DNSDistribuido/internal/config"
-	"google.golang.org/grpc"
+	"github.com/jfomu/DNSDistribuido/internal/nodo"
+	//"google.golang.org/grpc"
 )
 
 //// ESTRUCTURAS
@@ -23,19 +24,6 @@ type RegistroConsulta struct {
 //// VARIABLES GLOBALES
 var configuracion *config.Config
 var dominioConsulta map[string]*RegistroConsulta
-
-//// FUNCIONES
-func conectarNodo(ip string, port string) *grpc.ClientConn {
-	var conn *grpc.ClientConn
-	log.Printf("Intentando iniciar conexión con " + ip + ":" + port)
-	host := ip + ":" + port
-	conn, err := grpc.Dial(host, grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("did not connect: %s", err)
-	}
-	return conn
-}
-
 
 func main() {
 
@@ -50,7 +38,10 @@ func main() {
 	
 
 	// Conectando con el Broker
-	conn := conectarNodo(configuracion.Broker.Ip, configuracion.Broker.Port)
+	conn, err := nodo.ConectarNodo(configuracion.Broker.Ip, configuracion.Broker.Port)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
 	broker := pb.NewServicioNodoClient(conn)
 
 	//log.Printf("Conectado al nodo " + ip + ":" + port)
@@ -83,12 +74,29 @@ func main() {
 			log.Printf("IP: %s, Reloj: %v", resp.Respuesta, resp.Reloj)
 			
 			// Verificar la respuesta obtenida con el registro en memoria
-			log.Println("Registrar consulta en memoria")
 			if _, ok := dominioConsulta[words[0]]; !ok { // Si no existe un registro para la consulta de ese dominio
+				log.Println("Registrada consulta en memoria")
 				dominioConsulta[words[0]] = &RegistroConsulta{IP: resp.Ip, Port: resp.Port, Reloj: resp.Reloj}
 			} else{ // Si existe el registro para la consulta de ese dominio
 				//EDITAR
-				dominioConsulta[words[0]] = &RegistroConsulta{IP: resp.Ip, Port: resp.Port, Reloj: resp.Reloj}
+				log.Println("Registro encontrado en memoria")
+				// Comparar relojes
+				log.Printf("Reloj memoria: %+v", dominioConsulta[words[0]].Reloj)
+				log.Printf("Reloj consulta: %+v", resp.Reloj)
+				for i, valor := range dominioConsulta[words[0]].Reloj {
+					if valor > resp.Reloj[i] {
+						// Realizar consistencia
+						log.Println("REALIZAR CONSISTENCIA")
+						consulta.Ip = dominioConsulta[words[0]].IP
+						consulta.Port = dominioConsulta[words[0]].Port
+						resp, err := broker.Get(context.Background(), consulta)
+						if err != nil {
+							log.Printf("Error al llamar a Get(): %s\n", err)
+							continue
+						}
+						log.Printf("IP: %s, Reloj: %v", resp.Respuesta, resp.Reloj)
+					}
+				}
 			}
 			
 			

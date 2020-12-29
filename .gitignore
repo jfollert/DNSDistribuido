@@ -1,2 +1,2 @@
-cmd/dns/logs/*
-cmd/dns/registros/*
+logs/*.log
+registros/*.zf

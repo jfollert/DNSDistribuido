@@ -36,6 +36,9 @@ message RespuestaAdmin{
     repeated int32 reloj = 2;
 }
 
+message Log{
+    string LogLine = 1;
+}
 
 service ServicioNodo{
     rpc ObtenerEstado(Vacio) returns(Estado);
@@ -43,4 +46,5 @@ service ServicioNodo{
     rpc Create(Consulta) returns(Respuesta);
     rpc Delete(ConsultaAdmin) returns(RespuestaAdmin);
     rpc Update(ConsultaUpdate) returns(RespuestaAdmin);
+    rpc DownloadLog(Vacio) returns (stream Log);
 }

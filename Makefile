@@ -14,8 +14,8 @@ broker:
 
 ## FUNCIONALIDADES EXTRA
 clean:
-	rm -f cmd/dns/logs/*.log
-	rm -f cmd/dns/registros/*.zf
+	rm -f logs/*.log
+	rm -f registros/*.zf
 
 vm:
 	mv config.json config_local.vm

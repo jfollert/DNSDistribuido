@@ -1,26 +1,30 @@
-# Golang CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
-jobs:
-  build:
-    docker:
-      # specify the version
-      - image: circleci/golang:1.15.6
 
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
+executors:
+  ubuntu_machine:
+    machine:
+      image: ubuntu-2004:202010-01
 
-    #### TEMPLATE_NOTE: go expects specific checkout path representing url
-    #### expecting it in the form of
-    ####   /go/src/github.com/circleci/go-tool
-    ####   /go/src/bitbucket.org/circleci/go-tool
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+commands:
+  git-pull:
+    description: "Update git repository from the virtual machines"
     steps:
-      - checkout
+      - run: |
+          ssh -4 -L 9001:10.10.28.78:22 -Nf jfollert@ssh2.inf.utfsm.cl
+          ssh -p 9001 sd@127.0.0.1 "cd go/src/github.com/jfomu/DNSDistribuido && git pull"
 
-      # specify any bash command here prefixed with `run: `
-      - run: go get -v -t -d ./...
-      - run: go test -v ./...
+jobs:
+  executor: ubuntu_machine
+  deploy_to_vm:
+     steps:
+      - add_ssh_keys:
+            fingerprints:
+              - "b3:0f:e7:d4:98:21:40:e2:18:2a:b6:b9:09:5b:1d:fe"
+      - checkout
+      - git-pull
+
+
+workflows:
+  deploy:
+    jobs:
+      - deploy_to_vm:

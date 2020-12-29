@@ -5,15 +5,17 @@ import (
 	"context"
 	"net"
 	"math/rand"
-	"errors"
 
 	pb "github.com/jfomu/DNSDistribuido/internal/proto"
 	"github.com/jfomu/DNSDistribuido/internal/config"
+	"github.com/jfomu/DNSDistribuido/internal/nodo"
 	"google.golang.org/grpc"
 )
 
 //// ESTRUCTURAS
-type Server struct{}
+type Server struct{
+	nodo.Server
+}
 
 //// VARIABLES GLOBALES
 var configuracion *config.Config
@@ -53,7 +55,7 @@ func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, 
 		return respuesta, nil
 	}
 
-	conn, err := conectarNodo(dnsIP, dnsPort)
+	conn, err := nodo.ConectarNodo(dnsIP, dnsPort)
 	if err != nil{
 		log.Printf("Error al intentar realizar conexión gRPC: %s\n", err)
 		return nil, err
@@ -68,7 +70,7 @@ func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, 
 
 	return respuesta, nil
 }
-
+/*
 func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, error){
 	return nil, errors.New("Método Create() no implementado en este nodo")
 }
@@ -80,7 +82,7 @@ func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.Res
 
 func (s *Server) Update(ctx context.Context, message *pb.ConsultaUpdate) (*pb.RespuestaAdmin, error){
 	return nil, errors.New("Método Update() no implementado en este nodo")
-}
+}*/
 
 
 // FUNCIONES
@@ -105,6 +107,7 @@ func iniciarNodo(port string) {
 
 }
 
+/*
 func conectarNodo(ip string, port string) (*grpc.ClientConn, error) {
 	var conn *grpc.ClientConn
 	log.Printf("Intentando iniciar conexión con " + ip + ":" + port)
@@ -117,7 +120,7 @@ func conectarNodo(ip string, port string) (*grpc.ClientConn, error) {
 	//log.Printf("Conexión establecida con " + ip + ":" + strconv.Itoa(port))
 	return conn, nil
 }
-
+*/
 func main() {
 	log.Println("= INICIANDO BROKER =")
 

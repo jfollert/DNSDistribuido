@@ -10,7 +10,8 @@ import (
 
 	pb "github.com/jfomu/DNSDistribuido/internal/proto"
 	"github.com/jfomu/DNSDistribuido/internal/config"
-	"google.golang.org/grpc"
+	"github.com/jfomu/DNSDistribuido/internal/nodo"
+	//"google.golang.org/grpc"
 )
 
 //// ESTRUCTURAS
@@ -26,6 +27,7 @@ var configuracion *config.Config
 var dominioRegistro map[string]*RegistroCambio // Almacena para cada dominio la información del último cambio
 
 //// FUNCIONES
+/*
 func conectarNodo(ip string, port string) *grpc.ClientConn {
 	var conn *grpc.ClientConn
 	log.Printf("Intentando iniciar conexión con " + ip + ":" + port)
@@ -35,7 +37,7 @@ func conectarNodo(ip string, port string) *grpc.ClientConn {
 		log.Fatalf("did not connect: %s", err)
 	}
 	return conn
-}
+}*/
 
 func separarNombreDominio(nombreDominio string) (string, string) {
 	split := strings.Split(nombreDominio, ".")
@@ -46,7 +48,7 @@ func separarNombreDominio(nombreDominio string) (string, string) {
 	nombre = split[0]
 	dominio = split[1]
 	} else {
-		log.Fatal("[ERROR] Error dividiendo la variable NombreDominio")
+		log.Fatalf("[ERROR] Error dividiendo la variable NombreDominio")
 	}
 	return nombre, dominio
 }
@@ -64,7 +66,10 @@ func main() {
 	dominioRegistro = make(map[string]*RegistroCambio)
 	
 	log.Println("Estableciendo conexión con el Broker")
-	conn := conectarNodo(configuracion.Broker.Ip, configuracion.Broker.Port)
+	conn, err := nodo.ConectarNodo(configuracion.Broker.Ip, configuracion.Broker.Port)
+	if err != nil {
+		log.Fatalf("Error al intentar conectar con el Broker: %s", err)
+	}
 	broker := pb.NewServicioNodoClient(conn)
 
 	estado, err := broker.ObtenerEstado(context.Background(), new(pb.Vacio))
@@ -117,7 +122,10 @@ func main() {
 			
 			// Conectar al servidor DNS
 			log.Println("Estableciendo conexión con el nodo DNS")	
-			conn := conectarNodo(ipDNS, portDNS)
+			conn, err := nodo.ConectarNodo(ipDNS, portDNS)
+			if err != nil {
+				log.Fatalf("Error al intentar conectar al servidor DNS: %s", err)
+			}
 			dns := pb.NewServicioNodoClient(conn)
 
 			// Generar la consulta y enviarla
@@ -155,7 +163,10 @@ func main() {
 			}
 
 			log.Println("Estableciendo conexión con el nodo DNS")
-			conn := conectarNodo(resp.Ip, resp.Port)
+			conn, err := nodo.ConectarNodo(resp.Ip, resp.Port)
+			if err != nil {
+				log.Fatalf("Error al intentar conectar al servidor DNS: %s", err)
+			}
 			dns := pb.NewServicioNodoClient(conn)
 
 			consulta := new(pb.ConsultaUpdate)
@@ -184,7 +195,10 @@ func main() {
 			}
 
 			log.Println("Estableciendo conexión con el nodo DNS")
-			conn := conectarNodo(resp.Ip, resp.Port)
+			conn, err := nodo.ConectarNodo(resp.Ip, resp.Port)
+			if err != nil {
+				log.Fatalf("Error al intentar conectar al servidor DNS: %s", err)
+			}
 			dns := pb.NewServicioNodoClient(conn)
 
 			consulta := new(pb.ConsultaAdmin)

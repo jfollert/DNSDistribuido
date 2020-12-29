@@ -12,14 +12,16 @@ import (
 	"bufio"
 	"time"
 	
-
 	pb "github.com/jfomu/DNSDistribuido/internal/proto"
 	"github.com/jfomu/DNSDistribuido/internal/config"
+	"github.com/jfomu/DNSDistribuido/internal/nodo"
 	"google.golang.org/grpc"
 )
 
 //// ESTRUCTURAS
-type Server struct{}
+type Server struct{
+	nodo.Server
+}
 
 type RegistroZF struct{
 	ruta string  // ruta dentro del sistema donde se almacena el archivo de Registro ZF
@@ -27,7 +29,7 @@ type RegistroZF struct{
 	reloj []int32
 	dominioLinea map[string]int // relaciona el nombre de dominio a la linea que ocupa dentro del archivo de registro
 	cantLineas int
-	lineasBlancas []int
+	//lineasBlancas []int
 }
 
 //// VARIABLES GLOBALES
@@ -87,19 +89,6 @@ func Find(slice []string, val string) (int, bool) {
         }
     }
     return -1, false
-}
-
-func conectarNodo(ip string, port string) (*grpc.ClientConn, error) {
-	var conn *grpc.ClientConn
-	log.Printf("Intentando iniciar conexión con " + ip + ":" + port)
-	host := ip + ":" + port
-	conn, err := grpc.Dial(host, grpc.WithInsecure())
-	if err != nil {
-		//log.Printf("No se pudo establecer la conexión con " + ip + ":" + strconv.Itoa(port))
-		return nil, err
-	}
-	//log.Printf("Conexión establecida con " + ip + ":" + strconv.Itoa(port))
-	return conn, nil
 }
 
 func separarNombreDominio(nombreDominio string) (string, string) {
@@ -192,8 +181,8 @@ func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuest
 	// Agregar información a registro ZF
 	if _, ok := dominioRegistro[dominio]; !ok {  // Si no existe un registro ZF asociado al dominio
 		nombreArchivo := ID_DNS + "_" + dominio
-		rutaRegistros := "dns/registros/"
-		rutaLogs := "dns/logs/"
+		rutaRegistros := "registros/"
+		rutaLogs := "logs/"
 		
 		// Verificar que no existan los archivos asociados al registro
 		_, err1 := os.Stat(rutaRegistros + nombreArchivo + ".zf")
@@ -227,6 +216,12 @@ func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuest
 		salto = ""
 
 		log.Println("Se ha inicializado un nuevo registro ZF en memoria")
+	}
+
+	// Verificar que la linea del registro no exista
+	if _, ok := dominioRegistro[dominio].dominioLinea[nombre]; ok {  // Si no existe una linea en el registro ZF asociada al nombre
+		log.Println("Se ha intentando registrar un nombre de dominio ya existente")
+		return nil, errors.New("El registro que se intenta agregar ya existe en este servidor")
 	}
 
 	// Agregar información a archivo de registro ZF
@@ -518,7 +513,7 @@ func main() {
 			id := dns.Id
 			ip := dns.Ip
 			port := dns.Port
-			conn, err := conectarNodo(ip, port)
+			conn, err := nodo.ConectarNodo(ip, port)
 			if err != nil{
 				// Falla la conexión gRPC 
 				log.Fatalf("Error al intentar realizar conexión gRPC: %s", err)
@@ -535,13 +530,14 @@ func main() {
 					go iniciarNodo(port)
 
 					log.Println("Iniciando Timer")
-					ticker := time.NewTicker(5 * time.Second)
+					ticker := time.NewTicker(5 * time.Minute)
 					quit := make(chan struct{})
 					
 					for {
 					select {
 						case <- ticker.C:
-							log.Println("5 secs")
+							log.Println("Coordinando servidores DNS")
+							
 						case <- quit:
 							ticker.Stop()
 							break
