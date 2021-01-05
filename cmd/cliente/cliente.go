@@ -45,7 +45,7 @@ func main() {
 	broker := pb.NewServicioNodoClient(conn)
 
 	//log.Printf("Conectado al nodo " + ip + ":" + port)
-	_, err := broker.ObtenerEstado(context.Background(), new(pb.Consulta))
+	_, err = broker.ObtenerEstado(context.Background(), new(pb.Consulta))
 	if err != nil {
 		log.Fatalf("Error al llamar a ObtenerEstado(): %s", err)
 	}
