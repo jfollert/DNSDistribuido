@@ -219,8 +219,8 @@ func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuest
 		_, err2 = os.Stat(rutaLogs)
 		if os.IsNotExist(err1) || os.IsNotExist(err2) { 
 			log.Println("Creando directorios registros/ y logs/")
-			os.Mkdir(rutaRegistros, os.ModeDir)
-			os.Mkdir(rutaLogs, os.ModeDir)
+			os.Mkdir(rutaRegistros, "0700")
+			os.Mkdir(rutaLogs, "0700")
 		} 
 
 		// Iniciar nuevo registro ZF en memoria
