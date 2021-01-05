@@ -358,7 +358,7 @@ type RespuestaAdmin struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Reloj []int32 `protobuf:"varint,2,rep,packed,name=reloj,proto3" json:"reloj,omitempty"`
+	Reloj []int32 `protobuf:"varint,1,rep,packed,name=reloj,proto3" json:"reloj,omitempty"`
 }
 
 func (x *RespuestaAdmin) Reset() {
@@ -400,6 +400,108 @@ func (x *RespuestaAdmin) GetReloj() []int32 {
 	return nil
 }
 
+type File struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	FileInfo  string `protobuf:"bytes,1,opt,name=fileInfo,proto3" json:"fileInfo,omitempty"`
+	ChunkData []byte `protobuf:"bytes,3,opt,name=chunkData,proto3" json:"chunkData,omitempty"`
+}
+
+func (x *File) Reset() {
+	*x = File{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_nodo_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *File) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*File) ProtoMessage() {}
+
+func (x *File) ProtoReflect() protoreflect.Message {
+	mi := &file_nodo_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use File.ProtoReflect.Descriptor instead.
+func (*File) Descriptor() ([]byte, []int) {
+	return file_nodo_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *File) GetFileInfo() string {
+	if x != nil {
+		return x.FileInfo
+	}
+	return ""
+}
+
+func (x *File) GetChunkData() []byte {
+	if x != nil {
+		return x.ChunkData
+	}
+	return nil
+}
+
+type Dominios struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Dominios []string `protobuf:"bytes,1,rep,name=dominios,proto3" json:"dominios,omitempty"`
+}
+
+func (x *Dominios) Reset() {
+	*x = Dominios{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_nodo_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Dominios) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Dominios) ProtoMessage() {}
+
+func (x *Dominios) ProtoReflect() protoreflect.Message {
+	mi := &file_nodo_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Dominios.ProtoReflect.Descriptor instead.
+func (*Dominios) Descriptor() ([]byte, []int) {
+	return file_nodo_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *Dominios) GetDominios() []string {
+	if x != nil {
+		return x.Dominios
+	}
+	return nil
+}
+
 var File_nodo_proto protoreflect.FileDescriptor
 
 var file_nodo_proto_rawDesc = []byte{
@@ -430,24 +532,39 @@ var file_nodo_proto_rawDesc = []byte{
 	0x12, 0x14, 0x0a, 0x05, 0x72, 0x65, 0x6c, 0x6f, 0x6a, 0x18, 0x04, 0x20, 0x03, 0x28, 0x05, 0x52,
 	0x05, 0x72, 0x65, 0x6c, 0x6f, 0x6a, 0x22, 0x26, 0x0a, 0x0e, 0x52, 0x65, 0x73, 0x70, 0x75, 0x65,
 	0x73, 0x74, 0x61, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x12, 0x14, 0x0a, 0x05, 0x72, 0x65, 0x6c, 0x6f,
-	0x6a, 0x18, 0x02, 0x20, 0x03, 0x28, 0x05, 0x52, 0x05, 0x72, 0x65, 0x6c, 0x6f, 0x6a, 0x32, 0x82,
-	0x02, 0x0a, 0x0c, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x69, 0x6f, 0x4e, 0x6f, 0x64, 0x6f, 0x12,
-	0x2c, 0x0a, 0x0d, 0x4f, 0x62, 0x74, 0x65, 0x6e, 0x65, 0x72, 0x45, 0x73, 0x74, 0x61, 0x64, 0x6f,
-	0x12, 0x0c, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x56, 0x61, 0x63, 0x69, 0x6f, 0x1a, 0x0d,
-	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x45, 0x73, 0x74, 0x61, 0x64, 0x6f, 0x12, 0x28, 0x0a,
-	0x03, 0x47, 0x65, 0x74, 0x12, 0x0f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x43, 0x6f, 0x6e,
-	0x73, 0x75, 0x6c, 0x74, 0x61, 0x1a, 0x10, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x52, 0x65,
-	0x73, 0x70, 0x75, 0x65, 0x73, 0x74, 0x61, 0x12, 0x2b, 0x0a, 0x06, 0x43, 0x72, 0x65, 0x61, 0x74,
-	0x65, 0x12, 0x0f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x43, 0x6f, 0x6e, 0x73, 0x75, 0x6c,
+	0x6a, 0x18, 0x01, 0x20, 0x03, 0x28, 0x05, 0x52, 0x05, 0x72, 0x65, 0x6c, 0x6f, 0x6a, 0x22, 0x40,
+	0x0a, 0x04, 0x46, 0x69, 0x6c, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x66, 0x69, 0x6c, 0x65, 0x49, 0x6e,
+	0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x66, 0x69, 0x6c, 0x65, 0x49, 0x6e,
+	0x66, 0x6f, 0x12, 0x1c, 0x0a, 0x09, 0x63, 0x68, 0x75, 0x6e, 0x6b, 0x44, 0x61, 0x74, 0x61, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x09, 0x63, 0x68, 0x75, 0x6e, 0x6b, 0x44, 0x61, 0x74, 0x61,
+	0x22, 0x26, 0x0a, 0x08, 0x44, 0x6f, 0x6d, 0x69, 0x6e, 0x69, 0x6f, 0x73, 0x12, 0x1a, 0x0a, 0x08,
+	0x64, 0x6f, 0x6d, 0x69, 0x6e, 0x69, 0x6f, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x08,
+	0x64, 0x6f, 0x6d, 0x69, 0x6e, 0x69, 0x6f, 0x73, 0x32, 0x87, 0x03, 0x0a, 0x0c, 0x53, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x69, 0x6f, 0x4e, 0x6f, 0x64, 0x6f, 0x12, 0x2f, 0x0a, 0x0d, 0x4f, 0x62, 0x74,
+	0x65, 0x6e, 0x65, 0x72, 0x45, 0x73, 0x74, 0x61, 0x64, 0x6f, 0x12, 0x0f, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x2e, 0x43, 0x6f, 0x6e, 0x73, 0x75, 0x6c, 0x74, 0x61, 0x1a, 0x0d, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x2e, 0x45, 0x73, 0x74, 0x61, 0x64, 0x6f, 0x12, 0x28, 0x0a, 0x03, 0x47, 0x65,
+	0x74, 0x12, 0x0f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x43, 0x6f, 0x6e, 0x73, 0x75, 0x6c,
 	0x74, 0x61, 0x1a, 0x10, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x52, 0x65, 0x73, 0x70, 0x75,
-	0x65, 0x73, 0x74, 0x61, 0x12, 0x35, 0x0a, 0x06, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x12, 0x14,
-	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x43, 0x6f, 0x6e, 0x73, 0x75, 0x6c, 0x74, 0x61, 0x41,
-	0x64, 0x6d, 0x69, 0x6e, 0x1a, 0x15, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x52, 0x65, 0x73,
-	0x70, 0x75, 0x65, 0x73, 0x74, 0x61, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x12, 0x36, 0x0a, 0x06, 0x55,
-	0x70, 0x64, 0x61, 0x74, 0x65, 0x12, 0x15, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x43, 0x6f,
-	0x6e, 0x73, 0x75, 0x6c, 0x74, 0x61, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x1a, 0x15, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x52, 0x65, 0x73, 0x70, 0x75, 0x65, 0x73, 0x74, 0x61, 0x41, 0x64,
-	0x6d, 0x69, 0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x65, 0x73, 0x74, 0x61, 0x12, 0x2b, 0x0a, 0x06, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x12, 0x0f,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x43, 0x6f, 0x6e, 0x73, 0x75, 0x6c, 0x74, 0x61, 0x1a,
+	0x10, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x52, 0x65, 0x73, 0x70, 0x75, 0x65, 0x73, 0x74,
+	0x61, 0x12, 0x35, 0x0a, 0x06, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x12, 0x14, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x2e, 0x43, 0x6f, 0x6e, 0x73, 0x75, 0x6c, 0x74, 0x61, 0x41, 0x64, 0x6d, 0x69,
+	0x6e, 0x1a, 0x15, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x52, 0x65, 0x73, 0x70, 0x75, 0x65,
+	0x73, 0x74, 0x61, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x12, 0x36, 0x0a, 0x06, 0x55, 0x70, 0x64, 0x61,
+	0x74, 0x65, 0x12, 0x15, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x43, 0x6f, 0x6e, 0x73, 0x75,
+	0x6c, 0x74, 0x61, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x1a, 0x15, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x2e, 0x52, 0x65, 0x73, 0x70, 0x75, 0x65, 0x73, 0x74, 0x61, 0x41, 0x64, 0x6d, 0x69, 0x6e,
+	0x12, 0x29, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x46, 0x69, 0x6c, 0x65, 0x12, 0x0f, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x2e, 0x43, 0x6f, 0x6e, 0x73, 0x75, 0x6c, 0x74, 0x61, 0x1a, 0x0b, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x46, 0x69, 0x6c, 0x65, 0x30, 0x01, 0x12, 0x27, 0x0a, 0x07, 0x53,
+	0x65, 0x74, 0x46, 0x69, 0x6c, 0x65, 0x12, 0x0b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x46,
+	0x69, 0x6c, 0x65, 0x1a, 0x0d, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x45, 0x73, 0x74, 0x61,
+	0x64, 0x6f, 0x28, 0x01, 0x12, 0x2c, 0x0a, 0x0b, 0x47, 0x65, 0x74, 0x44, 0x6f, 0x6d, 0x69, 0x6e,
+	0x69, 0x6f, 0x73, 0x12, 0x0c, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x56, 0x61, 0x63, 0x69,
+	0x6f, 0x1a, 0x0f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x6f, 0x6d, 0x69, 0x6e, 0x69,
+	0x6f, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -462,7 +579,7 @@ func file_nodo_proto_rawDescGZIP() []byte {
 	return file_nodo_proto_rawDescData
 }
 
-var file_nodo_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_nodo_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_nodo_proto_goTypes = []interface{}{
 	(*Vacio)(nil),          // 0: proto.Vacio
 	(*Estado)(nil),         // 1: proto.Estado
@@ -471,20 +588,28 @@ var file_nodo_proto_goTypes = []interface{}{
 	(*ConsultaUpdate)(nil), // 4: proto.ConsultaUpdate
 	(*Respuesta)(nil),      // 5: proto.Respuesta
 	(*RespuestaAdmin)(nil), // 6: proto.RespuestaAdmin
+	(*File)(nil),           // 7: proto.File
+	(*Dominios)(nil),       // 8: proto.Dominios
 }
 var file_nodo_proto_depIdxs = []int32{
-	0, // 0: proto.ServicioNodo.ObtenerEstado:input_type -> proto.Vacio
+	2, // 0: proto.ServicioNodo.ObtenerEstado:input_type -> proto.Consulta
 	2, // 1: proto.ServicioNodo.Get:input_type -> proto.Consulta
 	2, // 2: proto.ServicioNodo.Create:input_type -> proto.Consulta
 	3, // 3: proto.ServicioNodo.Delete:input_type -> proto.ConsultaAdmin
 	4, // 4: proto.ServicioNodo.Update:input_type -> proto.ConsultaUpdate
-	1, // 5: proto.ServicioNodo.ObtenerEstado:output_type -> proto.Estado
-	5, // 6: proto.ServicioNodo.Get:output_type -> proto.Respuesta
-	5, // 7: proto.ServicioNodo.Create:output_type -> proto.Respuesta
-	6, // 8: proto.ServicioNodo.Delete:output_type -> proto.RespuestaAdmin
-	6, // 9: proto.ServicioNodo.Update:output_type -> proto.RespuestaAdmin
-	5, // [5:10] is the sub-list for method output_type
-	0, // [0:5] is the sub-list for method input_type
+	2, // 5: proto.ServicioNodo.GetFile:input_type -> proto.Consulta
+	7, // 6: proto.ServicioNodo.SetFile:input_type -> proto.File
+	0, // 7: proto.ServicioNodo.GetDominios:input_type -> proto.Vacio
+	1, // 8: proto.ServicioNodo.ObtenerEstado:output_type -> proto.Estado
+	5, // 9: proto.ServicioNodo.Get:output_type -> proto.Respuesta
+	5, // 10: proto.ServicioNodo.Create:output_type -> proto.Respuesta
+	6, // 11: proto.ServicioNodo.Delete:output_type -> proto.RespuestaAdmin
+	6, // 12: proto.ServicioNodo.Update:output_type -> proto.RespuestaAdmin
+	7, // 13: proto.ServicioNodo.GetFile:output_type -> proto.File
+	1, // 14: proto.ServicioNodo.SetFile:output_type -> proto.Estado
+	8, // 15: proto.ServicioNodo.GetDominios:output_type -> proto.Dominios
+	8, // [8:16] is the sub-list for method output_type
+	0, // [0:8] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -580,6 +705,30 @@ func file_nodo_proto_init() {
 				return nil
 			}
 		}
+		file_nodo_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*File); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_nodo_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Dominios); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -587,7 +736,7 @@ func file_nodo_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_nodo_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -613,11 +762,14 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ServicioNodoClient interface {
-	ObtenerEstado(ctx context.Context, in *Vacio, opts ...grpc.CallOption) (*Estado, error)
+	ObtenerEstado(ctx context.Context, in *Consulta, opts ...grpc.CallOption) (*Estado, error)
 	Get(ctx context.Context, in *Consulta, opts ...grpc.CallOption) (*Respuesta, error)
 	Create(ctx context.Context, in *Consulta, opts ...grpc.CallOption) (*Respuesta, error)
 	Delete(ctx context.Context, in *ConsultaAdmin, opts ...grpc.CallOption) (*RespuestaAdmin, error)
 	Update(ctx context.Context, in *ConsultaUpdate, opts ...grpc.CallOption) (*RespuestaAdmin, error)
+	GetFile(ctx context.Context, in *Consulta, opts ...grpc.CallOption) (ServicioNodo_GetFileClient, error)
+	SetFile(ctx context.Context, opts ...grpc.CallOption) (ServicioNodo_SetFileClient, error)
+	GetDominios(ctx context.Context, in *Vacio, opts ...grpc.CallOption) (*Dominios, error)
 }
 
 type servicioNodoClient struct {
@@ -628,7 +780,7 @@ func NewServicioNodoClient(cc grpc.ClientConnInterface) ServicioNodoClient {
 	return &servicioNodoClient{cc}
 }
 
-func (c *servicioNodoClient) ObtenerEstado(ctx context.Context, in *Vacio, opts ...grpc.CallOption) (*Estado, error) {
+func (c *servicioNodoClient) ObtenerEstado(ctx context.Context, in *Consulta, opts ...grpc.CallOption) (*Estado, error) {
 	out := new(Estado)
 	err := c.cc.Invoke(ctx, "/proto.ServicioNodo/ObtenerEstado", in, out, opts...)
 	if err != nil {
@@ -673,20 +825,98 @@ func (c *servicioNodoClient) Update(ctx context.Context, in *ConsultaUpdate, opt
 	return out, nil
 }
 
+func (c *servicioNodoClient) GetFile(ctx context.Context, in *Consulta, opts ...grpc.CallOption) (ServicioNodo_GetFileClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_ServicioNodo_serviceDesc.Streams[0], "/proto.ServicioNodo/GetFile", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &servicioNodoGetFileClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ServicioNodo_GetFileClient interface {
+	Recv() (*File, error)
+	grpc.ClientStream
+}
+
+type servicioNodoGetFileClient struct {
+	grpc.ClientStream
+}
+
+func (x *servicioNodoGetFileClient) Recv() (*File, error) {
+	m := new(File)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *servicioNodoClient) SetFile(ctx context.Context, opts ...grpc.CallOption) (ServicioNodo_SetFileClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_ServicioNodo_serviceDesc.Streams[1], "/proto.ServicioNodo/SetFile", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &servicioNodoSetFileClient{stream}
+	return x, nil
+}
+
+type ServicioNodo_SetFileClient interface {
+	Send(*File) error
+	CloseAndRecv() (*Estado, error)
+	grpc.ClientStream
+}
+
+type servicioNodoSetFileClient struct {
+	grpc.ClientStream
+}
+
+func (x *servicioNodoSetFileClient) Send(m *File) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *servicioNodoSetFileClient) CloseAndRecv() (*Estado, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Estado)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *servicioNodoClient) GetDominios(ctx context.Context, in *Vacio, opts ...grpc.CallOption) (*Dominios, error) {
+	out := new(Dominios)
+	err := c.cc.Invoke(ctx, "/proto.ServicioNodo/GetDominios", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ServicioNodoServer is the server API for ServicioNodo service.
 type ServicioNodoServer interface {
-	ObtenerEstado(context.Context, *Vacio) (*Estado, error)
+	ObtenerEstado(context.Context, *Consulta) (*Estado, error)
 	Get(context.Context, *Consulta) (*Respuesta, error)
 	Create(context.Context, *Consulta) (*Respuesta, error)
 	Delete(context.Context, *ConsultaAdmin) (*RespuestaAdmin, error)
 	Update(context.Context, *ConsultaUpdate) (*RespuestaAdmin, error)
+	GetFile(*Consulta, ServicioNodo_GetFileServer) error
+	SetFile(ServicioNodo_SetFileServer) error
+	GetDominios(context.Context, *Vacio) (*Dominios, error)
 }
 
 // UnimplementedServicioNodoServer can be embedded to have forward compatible implementations.
 type UnimplementedServicioNodoServer struct {
 }
 
-func (*UnimplementedServicioNodoServer) ObtenerEstado(context.Context, *Vacio) (*Estado, error) {
+func (*UnimplementedServicioNodoServer) ObtenerEstado(context.Context, *Consulta) (*Estado, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ObtenerEstado not implemented")
 }
 func (*UnimplementedServicioNodoServer) Get(context.Context, *Consulta) (*Respuesta, error) {
@@ -701,13 +931,22 @@ func (*UnimplementedServicioNodoServer) Delete(context.Context, *ConsultaAdmin) 
 func (*UnimplementedServicioNodoServer) Update(context.Context, *ConsultaUpdate) (*RespuestaAdmin, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
+func (*UnimplementedServicioNodoServer) GetFile(*Consulta, ServicioNodo_GetFileServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetFile not implemented")
+}
+func (*UnimplementedServicioNodoServer) SetFile(ServicioNodo_SetFileServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetFile not implemented")
+}
+func (*UnimplementedServicioNodoServer) GetDominios(context.Context, *Vacio) (*Dominios, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDominios not implemented")
+}
 
 func RegisterServicioNodoServer(s *grpc.Server, srv ServicioNodoServer) {
 	s.RegisterService(&_ServicioNodo_serviceDesc, srv)
 }
 
 func _ServicioNodo_ObtenerEstado_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Vacio)
+	in := new(Consulta)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -719,7 +958,7 @@ func _ServicioNodo_ObtenerEstado_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: "/proto.ServicioNodo/ObtenerEstado",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServicioNodoServer).ObtenerEstado(ctx, req.(*Vacio))
+		return srv.(ServicioNodoServer).ObtenerEstado(ctx, req.(*Consulta))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -796,6 +1035,71 @@ func _ServicioNodo_Update_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ServicioNodo_GetFile_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Consulta)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ServicioNodoServer).GetFile(m, &servicioNodoGetFileServer{stream})
+}
+
+type ServicioNodo_GetFileServer interface {
+	Send(*File) error
+	grpc.ServerStream
+}
+
+type servicioNodoGetFileServer struct {
+	grpc.ServerStream
+}
+
+func (x *servicioNodoGetFileServer) Send(m *File) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ServicioNodo_SetFile_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ServicioNodoServer).SetFile(&servicioNodoSetFileServer{stream})
+}
+
+type ServicioNodo_SetFileServer interface {
+	SendAndClose(*Estado) error
+	Recv() (*File, error)
+	grpc.ServerStream
+}
+
+type servicioNodoSetFileServer struct {
+	grpc.ServerStream
+}
+
+func (x *servicioNodoSetFileServer) SendAndClose(m *Estado) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *servicioNodoSetFileServer) Recv() (*File, error) {
+	m := new(File)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _ServicioNodo_GetDominios_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Vacio)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServicioNodoServer).GetDominios(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.ServicioNodo/GetDominios",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServicioNodoServer).GetDominios(ctx, req.(*Vacio))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _ServicioNodo_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "proto.ServicioNodo",
 	HandlerType: (*ServicioNodoServer)(nil),
@@ -820,7 +1124,22 @@ var _ServicioNodo_serviceDesc = grpc.ServiceDesc{
 			MethodName: "Update",
 			Handler:    _ServicioNodo_Update_Handler,
 		},
+		{
+			MethodName: "GetDominios",
+			Handler:    _ServicioNodo_GetDominios_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetFile",
+			Handler:       _ServicioNodo_GetFile_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetFile",
+			Handler:       _ServicioNodo_SetFile_Handler,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "nodo.proto",
 }

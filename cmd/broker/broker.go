@@ -28,9 +28,8 @@ func dnsAleatorio() (string, string){
 	return configuracion.DNS[idRandom].Ip, configuracion.DNS[idRandom].Port
 }
 
-
 //// FUNCIONES DEL SERVER
-func (s *Server) ObtenerEstado(ctx context.Context, message *pb.Vacio) (*pb.Estado, error){
+func (s *Server) ObtenerEstado(ctx context.Context, message *pb.Consulta) (*pb.Estado, error){
 	estado := new(pb.Estado)
 	estado.Estado = "OK"
 	return estado, nil
@@ -106,6 +105,8 @@ func iniciarNodo(port string) {
 	}
 
 }
+
+
 
 /*
 func conectarNodo(ip string, port string) (*grpc.ClientConn, error) {

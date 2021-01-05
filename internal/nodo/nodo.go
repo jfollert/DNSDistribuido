@@ -13,7 +13,7 @@ import (
 
 type Server struct{}
 
-func (s *Server) ObtenerEstado(ctx context.Context, message *pb.Vacio) (*pb.Estado, error){
+func (s *Server) ObtenerEstado(ctx context.Context, message *pb.Consulta) (*pb.Estado, error){
 	return nil, errors.New("Función ObtenerRegistro() no implementada para este nodo.")
 }
 
@@ -32,6 +32,19 @@ func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.Res
 func (s *Server) Update(ctx context.Context, message *pb.ConsultaUpdate) (*pb.RespuestaAdmin, error){
 	return nil, errors.New("Función Update() no implementada para este nodo.")
 }
+
+func (s *Server) GetFile(message *pb.Consulta, srv pb.ServicioNodo_GetFileServer) error{
+	return errors.New("Función GetFile() no implementada para este nodo.")
+}
+
+func (s *Server) SetFile(stream pb.ServicioNodo_SetFileServer) error{
+	return errors.New("Función SetFile() no implementada para este nodo.")
+}
+
+func (s *Server) GetDominios(ctx context.Context, message *pb.Vacio) (*pb.Dominios, error){
+	return nil, errors.New("Función GetDominios() no implementada para este nodo.")
+}
+
 
 /*
 func IniciarNodo(port string) {

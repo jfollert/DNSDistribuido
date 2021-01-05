@@ -33,18 +33,25 @@ message Respuesta{
 }
 
 message RespuestaAdmin{
-    repeated int32 reloj = 2;
+    repeated int32 reloj = 1;
 }
 
-message Log{
-    string LogLine = 1;
+message File{
+    string fileInfo = 1;
+    bytes chunkData = 3;
+}
+
+message Dominios{
+    repeated string dominios = 1;
 }
 
 service ServicioNodo{
-    rpc ObtenerEstado(Vacio) returns(Estado);
+    rpc ObtenerEstado(Consulta) returns(Estado);
     rpc Get(Consulta) returns(Respuesta);
     rpc Create(Consulta) returns(Respuesta);
     rpc Delete(ConsultaAdmin) returns(RespuestaAdmin);
     rpc Update(ConsultaUpdate) returns(RespuestaAdmin);
-    rpc DownloadLog(Vacio) returns (stream Log);
+    rpc GetFile(Consulta) returns (stream File);
+    rpc SetFile(stream File) returns(Estado);
+    rpc GetDominios(Vacio) returns(Dominios);
 }

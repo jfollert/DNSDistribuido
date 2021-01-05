@@ -151,19 +151,43 @@ func main() {
 		//// Comando UPDATE
 		} else if strings.Compare("update", words[0]) == 0 {
 			// Verificar el número de parámetros y puntos en el nombre de dominio
-			if len(words) != 4 ||  len(strings.Split(words[1], ".")) != 2  { 
+			if len(words) != 4 ||  len(strings.Split(words[1], ".")) != 2 || (words[2] != "ip" && words[2] != "name") { 
 				log.Printf("[ERROR] Usar:\n\t update <nombre>.<dominio> <opcion> <parámetro>\n\t <opcion> puede tomar los valores de ip o name\n")
 				continue
 			}
 
-			// Solicitar un servidor DNS aleatorio al Broker
-			resp, err := broker.Get(context.Background(), new(pb.Consulta))
-			if err != nil {
-			log.Fatalf("Error al llamar a Get(): %s", err)
+			// // Verificar la opción a actualizar
+			// if words[2] != "ip" && words[2] != "name" { 
+			// 	log.Printf("[ERROR] Usar:\n\t update <nombre>.<dominio> <opcion> <parámetro>\n\t <opcion> puede tomar los valores de ip o name\n")
+			// 	continue
+			// }
+
+			_, dominio := separarNombreDominio(words[1])
+			var ipDNS string
+			var portDNS string
+			var registroCambio *RegistroCambio
+
+			// Verificar si hay que solicitar un servidor DNS al broker o usar el registrado
+			if _, ok := dominioRegistro[dominio]; ok { // Si el registro está en memoria
+				registroCambio = dominioRegistro[dominio]
+				ipDNS = registroCambio.IP
+				portDNS = registroCambio.Port
+			} else { // Si el registro no está en memoria
+				// Solicitar un servidor DNS aleatorio al Broker
+				resp, err := broker.Get(context.Background(), new(pb.Consulta))
+				if err != nil {
+				log.Fatalf("Error al llamar a Get(): %s", err)
+				}
+				ipDNS = resp.Ip
+				portDNS = resp.Port
+
+				// Iniciar el registro en memoria
+				registroCambio = new(RegistroCambio)
 			}
 
+			// Conectar al servidor DNS
 			log.Println("Estableciendo conexión con el nodo DNS")
-			conn, err := nodo.ConectarNodo(resp.Ip, resp.Port)
+			conn, err := nodo.ConectarNodo(ipDNS, portDNS)
 			if err != nil {
 				log.Fatalf("Error al intentar conectar al servidor DNS: %s", err)
 			}
@@ -189,13 +213,33 @@ func main() {
 				log.Printf("[ERROR] Usar:\n\t delete <nombre>.<dominio>\n")
 				continue
 			}
-			resp, err := broker.Get(context.Background(), new(pb.Consulta))
-			if err != nil {
-			log.Fatalf("Error al llamar a Get(): %s", err)
+
+			_, dominio := separarNombreDominio(words[1])
+			var ipDNS string
+			var portDNS string
+			var registroCambio *RegistroCambio
+
+			// Verificar si hay que solicitar un servidor DNS al broker o usar el registrado
+			if _, ok := dominioRegistro[dominio]; ok { // Si el registro está en memoria
+				registroCambio = dominioRegistro[dominio]
+				ipDNS = registroCambio.IP
+				portDNS = registroCambio.Port
+			} else { // Si el registro no está en memoria
+				// Solicitar un servidor DNS aleatorio al Broker
+				resp, err := broker.Get(context.Background(), new(pb.Consulta))
+				if err != nil {
+				log.Fatalf("Error al llamar a Get(): %s", err)
+				}
+				ipDNS = resp.Ip
+				portDNS = resp.Port
+
+				// Iniciar el registro en memoria
+				registroCambio = new(RegistroCambio)
 			}
 
+			// Conectar al servidor DNS
 			log.Println("Estableciendo conexión con el nodo DNS")
-			conn, err := nodo.ConectarNodo(resp.Ip, resp.Port)
+			conn, err := nodo.ConectarNodo(ipDNS, portDNS)
 			if err != nil {
 				log.Fatalf("Error al intentar conectar al servidor DNS: %s", err)
 			}
