@@ -42,14 +42,5 @@ make clean
 ```
 
 
-## ProtocolBuffers
-En caso de necesitar recompilar los archivo *.proto* se deben seguir los siguientes pasos:
-
-1. Se debe agregar la ruta donde se encuentra *protoc-gen-go* al PATH
-```console
-export PATH="$PATH:$(go env GOPATH)/bin"
-```
-2. Para compilar los archivos .proto
-```console
-protoc -I internal/proto --go_out=plugins=grpc:internal/proto internal/proto/*.proto
-```
+## Consistencia entre nodos
+Hasta el momento, después de pasar 5 minutos, el nodo dominante recibe los archivos de registro asociados a los dominios que desconoce, pero no propaga los nuevo estado del nodo dominante a los otros.

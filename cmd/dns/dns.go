@@ -11,6 +11,8 @@ import (
 	"errors"
 	"bufio"
 	"time"
+	"math"
+	"io"
 	
 	pb "github.com/jfomu/DNSDistribuido/internal/proto"
 	"github.com/jfomu/DNSDistribuido/internal/config"
@@ -37,6 +39,11 @@ var configuracion *config.Config
 
 var conexionesNodos map[string]*grpc.ClientConn
 var conexionesGRPC map[string]pb.ServicioNodoClient
+
+var ticker *time.Ticker
+
+var rutaRegistros string
+var rutaLogs string
 
 var ID_DNS string
 var IP_DNS string
@@ -198,8 +205,6 @@ func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuest
 	// Agregar información a registro ZF
 	if _, ok := dominioRegistro[dominio]; !ok {  // Si no existe un registro ZF asociado al dominio
 		nombreArchivo := ID_DNS + "_" + dominio
-		rutaRegistros := "registros/"
-		rutaLogs := "logs/"
 		
 		// Verificar que no existan los archivos asociados al registro
 		_, err1 := os.Stat(rutaRegistros + nombreArchivo + ".zf")
@@ -506,27 +511,46 @@ func (s *Server) Update(ctx context.Context, message *pb.ConsultaUpdate) (*pb.Re
 
 
 func (s *Server) GetFile(message *pb.Consulta, srv pb.ServicioNodo_GetFileServer) error{
-	// // Verificar que se recibio un dominio
-	// if message.NombreDominio == "" {
-	// 	return errors.New("No se ha especificado el dominio en la consulta")
-	// }
-	// // Verificar que
-	// //Abrir archivo 
-	// file, err := os.Open(dominioRegistro[message.NombreDominio].rutaLog)
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 		return err
-	// 	}
-	// 	defer file.Close()
-	return errors.New("Función GetFile() no implementada para este nodo.")
+	// Verificar que se recibio un dominio
+	if message.NombreDominio == "" {
+		return errors.New("No se ha especificado el dominio en la consulta")
+	}
+	
+	//Abrir archivo correspondiente
+	file, err := os.Open(dominioRegistro[message.NombreDominio].ruta)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer file.Close()
+
+	fileInfo, _ := file.Stat()
+	var fileSize int64 = fileInfo.Size()
+	const fileChunk = 1 * (1 << 20) 
+	totalPartsNum := uint64(math.Ceil(float64(fileSize) / float64(fileChunk)))
+	
+	log.Printf("Registro dividido en %d piezas.\n", totalPartsNum)
+
+	resp := new(pb.File)
+	resp.FileInfo = dominioRegistro[message.NombreDominio].ruta
+	for i := uint64(0); i < totalPartsNum; i++ {
+
+		partSize := int(math.Min(fileChunk, float64(fileSize-int64(i*fileChunk))))
+		partBuffer := make([]byte, partSize)
+
+		file.Read(partBuffer)
+		resp.ChunkData = partBuffer
+		srv.Send(resp)	
+	}
+	return nil
 }
 
 func (s *Server) SetFile(stream pb.ServicioNodo_SetFileServer) error{
-	// Limpiar Archivo de Logs
 	return errors.New("Función SetFile() no implementada para este nodo.")
 }
 
 func (s *Server) GetDominios(ctx context.Context, message *pb.Vacio) (*pb.Dominios, error){
+	ticker.Stop()
 	dominios := make([]string, 0, len(dominioRegistro))
 	for d := range dominioRegistro {
         dominios = append(dominios, d)
@@ -548,6 +572,9 @@ func main() {
 	ID_DNS = ""
 	IP_DNS = ""
 	PORT_DNS = ""
+
+	rutaRegistros = "registros/"
+	rutaLogs = "logs/"
 
 	// Iniciar variables que mantenga las conexiones establecidas entre nodos
 	conexionesNodos = make(map[string]*grpc.ClientConn)
@@ -573,7 +600,7 @@ func main() {
 		c := pb.NewServicioNodoClient(conn)
 		_, err = c.ObtenerEstado(context.Background(), new(pb.Consulta))
 		if err != nil { // Si el servidor no responde a una consulta gRPC
-			log.Printf("Nodo %s con servidor DNS INACTIVO\n", id )
+			//log.Printf("Nodo %s con servidor DNS INACTIVO\n", id )
 
 			// Verificar si el nodo corresponde al asignado
 			_, found := Find(machineIPs, dns.Ip)
@@ -590,16 +617,68 @@ func main() {
 
 				go iniciarNodo(PORT_DNS)
 
-				log.Println("Iniciando Timer")
-				ticker := time.NewTicker(1 * time.Minute)
+				//log.Println("Iniciando Timer")
+				ticker = time.NewTicker(5 * time.Minute)
 				quit := make(chan struct{})
 				
 				for {
 				select {
 					case <- ticker.C:
 						log.Println("Coordinando servidores DNS")
-						log.Printf("ConexionesNodos: %+v", conexionesNodos)
-						log.Printf("ConexionesGRPC: %+v", conexionesGRPC)
+						ticker.Stop()
+						for _, dns := range conexionesGRPC{
+							// Obtener dominios registrados en el servidor dns
+							respuesta, err := dns.GetDominios(context.Background(), new(pb.Vacio))
+							if err != nil{
+								log.Printf("Error al ejecutar GetDominios: %s\n", err)
+								continue
+							}
+							//log.Printf("Dominios registrados: %+v", respuesta.Dominios)
+
+							// Revisar si existen los dominios en el nodo dominante
+							for _, dom := range respuesta.Dominios{
+								if _, ok := dominioRegistro[dom]; !ok { // Si no existe el dominio
+									// Obtener los archivos de registros correspondientes
+									stream, err := dns.GetFile(context.Background(), &pb.Consulta{NombreDominio: dom})
+									if err != nil {
+										log.Fatalf("Error abriendo el Stream %v", err)
+									}
+
+									done := make(chan bool)
+
+									nombreArchivo := rutaRegistros + ID_DNS + "_" + dom + ".zf"
+									file, err := os.OpenFile(nombreArchivo, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+										if err != nil {
+												fmt.Println(err)
+												os.Exit(1)
+										}
+
+									go func() {
+										for {
+											resp, err := stream.Recv()
+											if err == io.EOF {
+												file.Close()
+												done <- true 
+												return
+											}
+											if err != nil {
+												log.Fatalf("Error al recibir %v", err)
+											}
+
+											_, err = file.Write(resp.ChunkData)
+											if err != nil {
+													fmt.Println(err)
+													os.Exit(1)
+											}
+											file.Sync() 
+										}
+									}()
+
+									<-done
+								}
+							}
+
+						}
 						
 						
 					case <- quit:
@@ -609,68 +688,10 @@ func main() {
 				}
 			}
 		} else { // Si el servidor responde la consulta gRPC
-			log.Printf("Nodo %s con servidor DNS ACTIVO, almacenando conexión\n", id )
+			//log.Printf("Nodo %s con servidor DNS ACTIVO, almacenando conexión\n", id )
 			conexionesNodos[id] = conn
 			conexionesGRPC[id] = c
 		}
-
-		// _, found := Find(machineIPs, dns.Ip)
-		// if found { // En caso de que la IP configurada coincida con alguna de las IPs de la máquina
-		// 	// Verificar que el nodo esté disponible
-		// 	id = dns.Id
-		// 	ip = dns.Ip
-		// 	port = dns.Port
-		// 	conn, err := nodo.ConectarNodo(ip, port)
-		// 	if err != nil{
-		// 		// Falla la conexión gRPC 
-		// 		log.Fatalf("Error al intentar realizar conexión gRPC: %s", err)
-		// 	} else {
-		// 		// Registrar servicio gRPC
-		// 		c := pb.NewServicioNodoClient(conn)
-		// 		estado, err := c.ObtenerEstado(context.Background(), new(pb.Consulta))
-		// 		if err != nil {
-		// 			//log.Fatalf("Error al llamar a ObtenerEstado(): %s", err)
-		// 			log.Println("Nodo DNS disponible: " + id)
-		// 			ID_DNS = id
-		// 			IP_DNS = ip
-		// 			PORT_DNS = port
-
-		// 			// Presentarse a los otros nodos
-		// 			infoNodo := &pb.Consulta{NombreDominio: ID_DNS, Ip: IP_DNS, Port: PORT_DNS}
-		// 			for _, c := range conexionesGRPC{
-		// 				c.ObtenerEstado(context.Background(), infoNodo)
-		// 			}
-
-		// 			go iniciarNodo(PORT_DNS)
-
-		// 			log.Println("Iniciando Timer")
-		// 			ticker := time.NewTicker(1 * time.Minute)
-		// 			quit := make(chan struct{})
-					
-		// 			for {
-		// 			select {
-		// 				case <- ticker.C:
-		// 					log.Println("Coordinando servidores DNS")
-		// 					log.Printf("ConexionesNodos: %+v", conexionesNodos)
-		// 					log.Printf("ConexionesGRPC: %+v", conexionesGRPC)
-							
-							
-		// 				case <- quit:
-		// 					ticker.Stop()
-		// 					break
-		// 				}
-		// 			}
-		// 		}
-		// 		if estado.Estado == "OK" {
-		// 			log.Printf("Almacenando conexión a nodo DNS: " + id)
-		// 			conexionesNodos[id] = conn
-		// 			conexionesGRPC[id] = c
-		// 		}
-		// 	}
-		// } else {
-		// 	log.Printf("No se ha encontrado la dirección IP de la máquina en el archivo de configuración: %s", configName)
-		// 	break
-		// }
 	}
 
 }

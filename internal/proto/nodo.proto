@@ -38,7 +38,7 @@ message RespuestaAdmin{
 
 message File{
     string fileInfo = 1;
-    bytes chunkData = 3;
+    bytes chunkData = 2;
 }
 
 message Dominios{

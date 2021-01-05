@@ -27,17 +27,6 @@ var configuracion *config.Config
 var dominioRegistro map[string]*RegistroCambio // Almacena para cada dominio la información del último cambio
 
 //// FUNCIONES
-/*
-func conectarNodo(ip string, port string) *grpc.ClientConn {
-	var conn *grpc.ClientConn
-	log.Printf("Intentando iniciar conexión con " + ip + ":" + port)
-	host := ip + ":" + port
-	conn, err := grpc.Dial(host, grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("did not connect: %s", err)
-	}
-	return conn
-}*/
 
 func separarNombreDominio(nombreDominio string) (string, string) {
 	split := strings.Split(nombreDominio, ".")
@@ -72,11 +61,11 @@ func main() {
 	}
 	broker := pb.NewServicioNodoClient(conn)
 
-	estado, err := broker.ObtenerEstado(context.Background(), new(pb.Vacio))
+	_, err = broker.ObtenerEstado(context.Background(), new(pb.Consulta))
 	if err != nil {
 		log.Fatalf("Error al llamar a ObtenerEstado(): %s", err)
 	}
-	log.Printf("Estado del nodo seleccionado: " + estado.Estado)
+
 
 	// Recibir comando por la terminal
 	reader := bufio.NewReader(os.Stdin)
@@ -155,13 +144,7 @@ func main() {
 				log.Printf("[ERROR] Usar:\n\t update <nombre>.<dominio> <opcion> <parámetro>\n\t <opcion> puede tomar los valores de ip o name\n")
 				continue
 			}
-
-			// // Verificar la opción a actualizar
-			// if words[2] != "ip" && words[2] != "name" { 
-			// 	log.Printf("[ERROR] Usar:\n\t update <nombre>.<dominio> <opcion> <parámetro>\n\t <opcion> puede tomar los valores de ip o name\n")
-			// 	continue
-			// }
-
+			
 			_, dominio := separarNombreDominio(words[1])
 			var ipDNS string
 			var portDNS string

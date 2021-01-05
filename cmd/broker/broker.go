@@ -24,7 +24,7 @@ var configuracion *config.Config
 func dnsAleatorio() (string, string){
 	idRandom := rand.Intn(3)
 	//idRandom := 0
-	log.Printf("Servidor DNS obtenido de forma aleatoria: DNS%d\n", idRandom+1)
+	//log.Printf("Servidor DNS obtenido de forma aleatoria: DNS%d\n", idRandom+1)
 	return configuracion.DNS[idRandom].Ip, configuracion.DNS[idRandom].Port
 }
 
@@ -49,7 +49,7 @@ func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, 
 	}
 
 	if message.Ip == "" && message.Port == "" && message.NombreDominio == "" { // Se es una consulta del administrador
-		log.Println("Enviando DNS aleatorio al Admin")
+		//log.Println("Enviando DNS aleatorio al Admin")
 		respuesta = &pb.Respuesta{Ip: dnsIP, Port: dnsPort}
 		return respuesta, nil
 	}

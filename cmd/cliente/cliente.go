@@ -45,11 +45,11 @@ func main() {
 	broker := pb.NewServicioNodoClient(conn)
 
 	//log.Printf("Conectado al nodo " + ip + ":" + port)
-	estado, err := broker.ObtenerEstado(context.Background(), new(pb.Vacio))
+	estado, err := broker.ObtenerEstado(context.Background(), new(pb.Consulta))
 	if err != nil {
 		log.Fatalf("Error al llamar a ObtenerEstado(): %s", err)
 	}
-	log.Printf("Estado del nodo Broker: " + estado.Estado)
+	//log.Printf("Estado del nodo Broker: " + estado.Estado)
 
 	reader := bufio.NewReader(os.Stdin)
 	for {
@@ -63,7 +63,7 @@ func main() {
 		if strings.Compare("get", words[0]) == 0 && len(words) == 2  { // Si el comando ingresado es get
 			consulta := new(pb.Consulta)
 			consulta.NombreDominio = words[1]
-			log.Println("nombreDominio: " + consulta.NombreDominio)
+			//log.Println("nombreDominio: " + consulta.NombreDominio)
 			consulta.Ip = ""
 			consulta.Port = ""
 			resp, err := broker.Get(context.Background(), consulta)
@@ -71,33 +71,34 @@ func main() {
 				log.Printf("Error al llamar a Get(): %s\n", err)
 				continue
 			}
-			log.Printf("IP: %s, Reloj: %v", resp.Respuesta, resp.Reloj)
+			
 			
 			// Verificar la respuesta obtenida con el registro en memoria
 			if _, ok := dominioConsulta[words[0]]; !ok { // Si no existe un registro para la consulta de ese dominio
 				log.Println("Registrada consulta en memoria")
 				dominioConsulta[words[0]] = &RegistroConsulta{IP: resp.Ip, Port: resp.Port, Reloj: resp.Reloj}
 			} else{ // Si existe el registro para la consulta de ese dominio
-				//EDITAR
-				log.Println("Registro encontrado en memoria")
+				//log.Println("Registro encontrado en memoria")
 				// Comparar relojes
-				log.Printf("Reloj memoria: %+v", dominioConsulta[words[0]].Reloj)
-				log.Printf("Reloj consulta: %+v", resp.Reloj)
+				//log.Printf("Reloj memoria: %+v", dominioConsulta[words[0]].Reloj)
+				//log.Printf("Reloj consulta: %+v", resp.Reloj)
 				for i, valor := range dominioConsulta[words[0]].Reloj {
 					if valor > resp.Reloj[i] {
 						// Realizar consistencia
-						log.Println("REALIZAR CONSISTENCIA")
+						//log.Println("REALIZAR CONSISTENCIA")
 						consulta.Ip = dominioConsulta[words[0]].IP
 						consulta.Port = dominioConsulta[words[0]].Port
-						resp, err := broker.Get(context.Background(), consulta)
+						resp, err = broker.Get(context.Background(), consulta)
 						if err != nil {
 							log.Printf("Error al llamar a Get(): %s\n", err)
 							continue
 						}
-						log.Printf("IP: %s, Reloj: %v", resp.Respuesta, resp.Reloj)
+						//log.Printf("IP: %s, Reloj: %v", resp.Respuesta, resp.Reloj)
 					}
 				}
 			}
+
+			log.Printf("IP: %s, Reloj: %v", resp.Respuesta, resp.Reloj)
 			
 			
 		  
