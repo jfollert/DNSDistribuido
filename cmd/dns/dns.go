@@ -215,13 +215,13 @@ func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuest
 		} 
 
 		// Verificar que existan las carpetas registros/ y logs/
-		_, err1 = os.Stat(rutaRegistros)
-		_, err2 = os.Stat(rutaLogs)
-		if os.IsNotExist(err1) || os.IsNotExist(err2) { 
-			log.Println("Creando directorios registros/ y logs/")
-			os.Mkdir(rutaRegistros, "0700")
-			os.Mkdir(rutaLogs, "0700")
-		} 
+		// _, err1 = os.Stat(rutaRegistros)
+		// _, err2 = os.Stat(rutaLogs)
+		// if os.IsNotExist(err1) || os.IsNotExist(err2) { 
+		// 	log.Println("Creando directorios registros/ y logs/")
+		// 	os.Mkdir(rutaRegistros, os.ModeDir)
+		// 	os.Mkdir(rutaLogs, os.ModeDir)
+		// } 
 
 		// Iniciar nuevo registro ZF en memoria
 		dominioRegistro[dominio] = new(RegistroZF)
