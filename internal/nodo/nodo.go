@@ -70,7 +70,7 @@ func IniciarNodo(port string) {
 
 func ConectarNodo(ip string, port string) (*grpc.ClientConn, error) {
 	var conn *grpc.ClientConn
-	log.Printf("Intentando iniciar conexión con " + ip + ":" + port)
+	log.Printf("Iniciando conexión con " + ip + ":" + port)
 	host := ip + ":" + port
 	keepConf:= keepalive.ClientParameters{
 		Time:					10 * time.Second,

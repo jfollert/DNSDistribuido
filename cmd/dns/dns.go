@@ -17,6 +17,7 @@ import (
 	pb "github.com/jfomu/DNSDistribuido/internal/proto"
 	"github.com/jfomu/DNSDistribuido/internal/config"
 	"github.com/jfomu/DNSDistribuido/internal/nodo"
+	//"github.com/jfomu/DNSDistribuido/internal/registros"
 	"google.golang.org/grpc"
 )
 
@@ -33,21 +34,24 @@ type RegistroZF struct{
 	cantLineas int
 }
 
-//// VARIABLES GLOBALES
-var dominioRegistro map[string]*RegistroZF // relaciona el nombre de dominio con su Registro ZF respectivo
-var configuracion *config.Config
 
-var conexionesNodos map[string]*grpc.ClientConn
-var conexionesGRPC map[string]pb.ServicioNodoClient
+const ( //// CONSTANTES
+	RUTA_REGISTROS = "registros/"
+	RUTA_LOGS = "logs/"
+	CONFIG_FILENAME = "config.json"
+)
 
-var ticker *time.Ticker
-
-var rutaRegistros string
-var rutaLogs string
-
-var ID_DNS string
-var IP_DNS string
-var PORT_DNS string
+var ( //// VARIABLES GLOBALES
+	configuracion = config.GenConfig(CONFIG_FILENAME)
+	dominioRegistro map[string]*RegistroZF // relaciona el nombre de dominio con su Registro ZF respectivo
+	//reg registros.Registros
+	conexionesNodos map[string]*grpc.ClientConn
+	conexionesGRPC map[string]pb.ServicioNodoClient
+	ticker *time.Ticker
+	ID_DNS string
+	IP_DNS string
+	PORT_DNS string
+)
 
 //// FUNCIONES
 func iniciarNodo(port string) {
@@ -101,24 +105,18 @@ func Find(slice []string, val string) (int, bool) {
     return -1, false
 }
 
-func separarNombreDominio(nombreDominio string) (string, string) {
+func separarNombreDominio(nombreDominio string) (string, string, error) {
 	split := strings.Split(nombreDominio, ".")
-	var nombre string
-	var dominio string
-
 	if len(split) == 2{
-	nombre = split[0]
-	dominio = split[1]
-	} else {
-		log.Fatal("[ERROR] Error dividiendo la variable NombreDominio")
-	}
-	return nombre, dominio
+		return split[0], split[1], nil
+	} 
+	return "", "", errors.New(nombreDominio + " no cumple el formato, debe contener solo un punto") 
 }
 
 //// FUNCIONES DEL OBJETO SERVER
 func (s *Server) ObtenerEstado(ctx context.Context, message *pb.Consulta) (*pb.Estado, error){
 
-	if message.NombreDominio != "" && message.Ip != "" && message.Port != "" {
+	if message.NombreDominio != "" && message.Ip != "" && message.Port != "" { 
 		conn, err := nodo.ConectarNodo(message.Ip, message.Port)
 		if err != nil{
 			// Falla la conexión gRPC 
@@ -131,16 +129,16 @@ func (s *Server) ObtenerEstado(ctx context.Context, message *pb.Consulta) (*pb.E
 		conexionesGRPC[message.NombreDominio] = c
 	}
 
-	estado := new(pb.Estado)
-	estado.Estado = "OK"
-	return estado, nil
+	return &pb.Estado{Estado: "OK"}, nil
 }
 
 // Comando GET
 func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, error){
 	// Separar nombre y el dominio en diferentes strings
-	log.Println("NOMBRE: " + message.NombreDominio)
-	nombre, dominio := separarNombreDominio(message.NombreDominio)
+	nombre, dominio, err := separarNombreDominio(message.NombreDominio)
+	if err != nil{
+		return nil, err
+	}
 
 	// Remover linea de registro ZF
 	if registro, ok := dominioRegistro[dominio]; ok { // Verificar si se encuentra el dominio en nuestro registro ZF
@@ -198,43 +196,68 @@ func (s *Server) Get(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, 
 
 // Comando CREATE
 func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuesta, error){
+	
 	// Separar nombre y el dominio en diferentes strings
-	nombre, dominio := separarNombreDominio(message.NombreDominio)
+	nombre, dominio, err := separarNombreDominio(message.NombreDominio)
+	if err != nil{
+		return nil, err
+	}
+
 	salto := "\n"
 
 	// Agregar información a registro ZF
 	if _, ok := dominioRegistro[dominio]; !ok {  // Si no existe un registro ZF asociado al dominio
-		nombreArchivo := ID_DNS + "_" + dominio
-		
+
+		// Verificar que existan las carpetas donde se almacenan los archivos de registro y log
+		_, err1 := os.Stat(RUTA_REGISTROS)
+		_, err2 := os.Stat(RUTA_LOGS)
+		if os.IsNotExist(err1) || os.IsNotExist(err2) { 
+			log.Printf("Creando directorios: %s | %s", RUTA_REGISTROS, RUTA_LOGS)
+			if err = os.Mkdir(RUTA_REGISTROS, 0777); err != nil {
+				return nil, err
+			}
+			//os.ModeDir
+			if err =os.Mkdir(RUTA_LOGS, 0777); err != nil {
+				return nil, err
+			}
+		} 
+
+		rutaRegistros :=  RUTA_REGISTROS + ID_DNS + "/"
+		rutaLogs := RUTA_LOGS + ID_DNS + "/"
+
+		// Verificar que existan los directorios asociados al nodo
+		_, err1 = os.Stat(rutaRegistros)
+		_, err2 = os.Stat(rutaLogs)
+		if os.IsNotExist(err1) || os.IsNotExist(err2) { // Si alguno de los archivos ya existe
+			log.Printf("Creando directorios: %s | %s", rutaRegistros, rutaLogs)
+			if err = os.Mkdir(rutaRegistros, 0777); err != nil {
+				return nil, err
+			}
+			if err =os.Mkdir(rutaLogs, 0777); err != nil {
+				return nil, err
+			}
+		}
+
 		// Verificar que no existan los archivos asociados al registro
-		_, err1 := os.Stat(rutaRegistros + nombreArchivo + ".zf")
-	 	_, err2 := os.Stat(rutaLogs + nombreArchivo + ".log")
+		_, err1 = os.Stat(rutaRegistros + dominio)
+	 	_, err2 = os.Stat(rutaLogs + dominio + ".log")
 		if !os.IsNotExist(err1) || !os.IsNotExist(err2) { // Si alguno de los archivos ya existe
 			log.Println("Se han encotrado los archivos asociados al registro pero el registro no se encuentra en memoria.")
 			return nil, errors.New("Se han encotrado los archivos asociados al registro pero el registro no se encuentra en memoria.")
 		} 
 
-		// Verificar que existan las carpetas registros/ y logs/
-		// _, err1 = os.Stat(rutaRegistros)
-		// _, err2 = os.Stat(rutaLogs)
-		// if os.IsNotExist(err1) || os.IsNotExist(err2) { 
-		// 	log.Println("Creando directorios registros/ y logs/")
-		// 	os.Mkdir(rutaRegistros, os.ModeDir)
-		// 	os.Mkdir(rutaLogs, os.ModeDir)
-		// } 
-
 		// Iniciar nuevo registro ZF en memoria
 		dominioRegistro[dominio] = new(RegistroZF)
 		
 		// Asociar las rutas correspondientes al registro ZF
-		dominioRegistro[dominio].ruta = rutaRegistros + nombreArchivo + ".zf"
-		dominioRegistro[dominio].rutaLog = rutaLogs + nombreArchivo + ".log"
+		dominioRegistro[dominio].ruta = rutaRegistros + dominio
+		dominioRegistro[dominio].rutaLog = rutaLogs + dominio + ".log"
 
 		// Inicializar variables del registro ZF
 		dominioRegistro[dominio].reloj = []int32{0, 0, 0}
 		dominioRegistro[dominio].dominioLinea = make(map[string]int)
 		dominioRegistro[dominio].cantLineas = 0
-		//dominioRegistro[dominio].lineasBlancas = make([]int)
+
 		salto = ""
 
 		log.Println("Se ha inicializado un nuevo registro ZF en memoria")
@@ -261,6 +284,7 @@ func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuest
 	dominioRegistro[dominio].cantLineas += 1
 	log.Println("Información agregada al archivo del registro ZF")
 
+
 	// Agregar información a Log de cambios
 	logFile, err := os.OpenFile(dominioRegistro[dominio].rutaLog,
 	os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -275,7 +299,7 @@ func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuest
 	}
 	log.Println("Información agregada al Log de cambios")
 
-	// Actualizar reloj de vector
+	//Actualizar reloj de vector
 	id, err := strconv.Atoi(string(ID_DNS[3]))
 	if err != nil {
 		log.Println(err)
@@ -286,19 +310,22 @@ func (s *Server) Create(ctx context.Context, message *pb.Consulta) (*pb.Respuest
 	// Actualizar map de nombre a la linea en que se encuentra
 	dominioRegistro[dominio].dominioLinea[nombre] = dominioRegistro[dominio].cantLineas
 
-	// Generar respuesta y retornarla
+	//Generar respuesta y retornarla
 	respuesta := new(pb.Respuesta) 
 	respuesta.Reloj = dominioRegistro[dominio].reloj
 	respuesta.Ip = IP_DNS
 	respuesta.Port = PORT_DNS
-	return respuesta, nil
 
+	return respuesta, nil
 }
 
 // Comando DELETE
 func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.RespuestaAdmin, error){
 	// Separar nombre y el dominio en diferentes strings
-	nombre, dominio := separarNombreDominio(message.NombreDominio)
+	nombre, dominio, err := separarNombreDominio(message.NombreDominio)
+	if err != nil{
+		return nil, err
+	}
 
 	// Remover linea de registro ZF
 	if registro, ok := dominioRegistro[dominio]; ok { // Verificar si se encuentra el dominio en nuestro registro ZF
@@ -397,7 +424,10 @@ func (s *Server) Delete(ctx context.Context, message *pb.ConsultaAdmin) (*pb.Res
 // Comando UPDATE
 func (s *Server) Update(ctx context.Context, message *pb.ConsultaUpdate) (*pb.RespuestaAdmin, error){
 	// Separar nombre y el dominio en diferentes strings
-	nombre, dominio := separarNombreDominio(message.NombreDominio)
+	nombre, dominio, err := separarNombreDominio(message.NombreDominio)
+	if err != nil{
+		return nil, err
+	}
 
 	// Actualizar linea de registro ZF
 	if registro, ok := dominioRegistro[dominio]; ok { // Verificar si se encuentra el dominio en nuestro registro ZF
@@ -563,8 +593,9 @@ func main() {
 	log.Printf("= INICIANDO DNS SERVER =")
 
 	// Cargar archivo de configuración
-	configName := "config.json"
-	configuracion = config.GenConfig(configName)
+	// configuracion = config.GenConfig(CONFIG_FILENAME)
+
+	//reg.Init(ID_DNS)
 
 	// Inicializar variables
 	log.Printf("Inicializando variables")
@@ -573,8 +604,6 @@ func main() {
 	IP_DNS = ""
 	PORT_DNS = ""
 
-	rutaRegistros = "registros/"
-	rutaLogs = "logs/"
 
 	// Iniciar variables que mantenga las conexiones establecidas entre nodos
 	conexionesNodos = make(map[string]*grpc.ClientConn)
@@ -646,7 +675,7 @@ func main() {
 
 									done := make(chan bool)
 
-									nombreArchivo := rutaRegistros + ID_DNS + "_" + dom + ".zf"
+									nombreArchivo := RUTA_REGISTROS + ID_DNS + "/" + dom
 									file, err := os.OpenFile(nombreArchivo, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 										if err != nil {
 												fmt.Println(err)

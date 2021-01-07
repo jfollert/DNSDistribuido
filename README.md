@@ -43,4 +43,4 @@ make clean
 
 
 ## Consistencia entre nodos
-Hasta el momento, después de pasar 5 minutos, el nodo dominante recibe los archivos de registro asociados a los dominios que desconoce, pero no propaga los nuevo estado del nodo dominante a los otros.
+Hasta el momento, después de pasar 5 minutos, el nodo dominante (el primer nodo en completar los 5 minutos) recibe los archivos de registro asociados a los dominios que desconoce, pero no propaga los nuevo estado del nodo dominante a los otros.

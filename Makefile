@@ -12,10 +12,10 @@ broker:
 	go run cmd/broker/broker.go
 
 
-## FUNCIONALIDADES EXTRA
 clean:
-	rm -f logs/*.log
-	rm -f registros/*.zf
+	rm -rf logs/*
+	rm -rf registros/*
+
 
 vm:
 	mv config.json config_local.vm
